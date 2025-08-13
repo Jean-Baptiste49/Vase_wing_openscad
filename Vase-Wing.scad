@@ -35,7 +35,8 @@ module TipAirfoilPolygon()  {  airfoil_M18();  }
 Aileron_part = false;
 Root_part = false;
 Mid_part = false;
-Tip_part = true;
+Tip_part = false;
+Full_wing = true;
 
 //****************Wing Airfoil settings**********//
 wing_sections = 20; //60; // how many sections : more is higher resolution but higher processing
