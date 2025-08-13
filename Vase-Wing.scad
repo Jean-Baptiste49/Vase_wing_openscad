@@ -22,6 +22,7 @@ module TipAirfoilPolygon()  {  airfoil_M18();  }
 // ailerons : void with TE + and pin accroche + Ailerons create
 // Emprunte servo perso
 // Seperation root mid etc ?
+// enlever echo
 
 // Custom airfoil profil = Murat ?
 
@@ -37,7 +38,7 @@ slice_gap_width = 0.01;//This is the gap in the outer skin.(smaller is better bu
 
 wing_mode = 2; // 1=trapezoidal wing 2= elliptic wing
 
-wing_sections = 20; //39; // how many sections you would like to break up the wing into more is higher resolution but higher processing
+wing_sections = 60; //39; // how many sections you would like to break up the wing into more is higher resolution but higher processing
 wing_mm = 417;            // wing length in mm
 wing_root_chord_mm = 228.2; // Root chord legth in mm
 wing_tip_chord_mm = 38.3;   // wing tip chord length in mm (Not relevant for elliptic wing); //
@@ -141,11 +142,12 @@ servo_show = false;       // for debugging only. Show the servo for easier place
 //******//
 
 //****************Aileron settings**********//
-create_aileron = true; // Create an Aileron
-aileron_root_width = 50;    //The aileron width from the TE on the root side
-aileron_tip_width = 40;    //The aileron width from the TE on the tip side
-aileron_length = 60;      //How long to make the aileron
-aileron_start = 40;        //How far from the root should the aileron start
+create_aileron = true;   // Create an Aileron
+aileron_thickness = 30;  // Aileron dimension on X axis toward Leading Edge
+aileron_height = 30;     // Aileron dimension on Y axis 
+aileron_start_z = 50;    // Aileron dimension on Z axis on Trailing Edge
+aileron_end_z = 180;     // Aileron dimension on Z axis on Trailing Edge
+aileron_cyl_radius = 15;   // Aileron void cylinder radius 
 //******//
 
 
@@ -296,10 +298,11 @@ else
 {
 
     main();
-    CreateAileronVoid();
-    //points_te = get_trailing_edge_points();     
-    //show_trailing_edge_points(points_te);
-
+    // **** DEBUG **** //
+    points_te = get_trailing_edge_points();     
+    show_trailing_edge_points(points_te);
+    //CreateAileronVoid();  
+    // **** END DEBUG **** //
 
 
 

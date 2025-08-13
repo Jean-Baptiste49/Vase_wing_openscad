@@ -1,129 +1,107 @@
-module CreateAileronVoid()
-{
+module CreateAileronVoid() {
+    all_pts = get_trailing_edge_points();
 
-    if (wing_mode == 1)
-    {
-        // find hight at aileron_start and aileron_root_width
+    function interpolate_pt(p1, p2, target_z) =
+        let (
+            dz = p2[2] - p1[2],
+            t = (target_z - p1[2]) / dz
+        )
+        [
+            p1[0] + t * (p2[0] - p1[0]),
+            p1[1] + t * (p2[1] - p1[1]),
+            target_z
+        ];
 
-        aileron_root_chord_length = ChordLengthAtPosition(aileron_start);
-        aileron_tip_chord_length = ChordLengthAtPosition(aileron_start + aileron_length);
-        //echo("aileron_root_chord_length: ", aileron_root_chord_length);
-        //echo("aileron_tip_chord_length: ", aileron_tip_chord_length);
+    function find_interpolated_point(target_z, pts) =
+        let (
+            pairs = [for (i = [0 : len(pts) - 2]) [pts[i], pts[i+1]]],
+            valid = [
+                for (pair = pairs)
+                    if (
+                        (pair[0][2] <= target_z && target_z <= pair[1][2]) ||
+                        (pair[1][2] <= target_z && target_z <= pair[0][2])
+                    ) pair
+            ]
+        )
+        (len(valid) > 0) ? interpolate_pt(valid[0][0], valid[0][1], target_z) : undef;
 
-        aileron_root_hight = AirfoilHeightAtPosition(scalePath(af_vec_path_root, aileron_root_chord_length / 100), 50);
-        aileron_tip_hight = AirfoilHeightAtPosition(scalePath(af_vec_path_root, aileron_tip_chord_length / 100), 50);
-        //echo("aileron_root_hight: ", aileron_root_hight);
-        //echo("aileron_tip_hight: ", aileron_tip_hight);
+    pt_start = find_interpolated_point(aileron_start_z, all_pts);
+    pt_end   = find_interpolated_point(aileron_end_z, all_pts);
+    inner_pts = [for (pt = all_pts) if (pt[2] > aileron_start_z && pt[2] < aileron_end_z) pt];
+    full_pts = concat(
+        pt_start != undef ? [pt_start] : [],
+        inner_pts,
+        pt_end != undef ? [pt_end] : []
+    );
 
-        //diff_center = (wing_center_line_perc / 100 * aileron_tip_chord_length) - (wing_center_line_perc / 100 * aileron_root_chord_length)
-        
-        diff_chords = (aileron_root_chord_length - aileron_tip_chord_length);
-        //echo("diff_chords: ", diff_chords);
-        
-        angle_rad = atan2(-diff_chords, aileron_length);
+    if (len(full_pts) >= 2) {
+        for (i = [0 : len(full_pts) - 2]) {
+            pt1 = full_pts[i];
+            pt2 = full_pts[i + 1];
 
-        // Convert to degrees
-        angle_deg = angle_rad * 180 / PI;
+            hull() {
+                translate([pt1[0] - aileron_thickness, pt1[1] - aileron_height / 2, pt1[2]])
+                    cube([aileron_thickness, aileron_height, 1], center = false);
 
-        CubePoints = [
-            [ 0, -aileron_root_hight / 2, 0 ],                                  // 0
-            [ aileron_root_width + 1, -aileron_root_hight / 2, 0 ],             // 1
-            [ aileron_root_width + 1, aileron_root_hight / 2, 0 ],              // 2
-            [ 0, aileron_root_hight / 2, 0 ],                                   // 3
-            [ 0, -aileron_tip_hight / 2, aileron_length ],                      // 4
-            [ aileron_root_width + 1, -aileron_tip_hight / 2, aileron_length ], // 5
-            [ aileron_root_width + 1, aileron_tip_hight / 2, aileron_length ],  // 6
-            [ 0, aileron_tip_hight / 2, aileron_length ]                     ]; // 7
-
-        CubeFaces = [
-            [ 0, 1, 2, 3 ], // bottom
-            [ 4, 5, 1, 0 ], // front
-            [ 7, 6, 5, 4 ], // top
-            [ 5, 6, 2, 1 ], // right
-            [ 6, 7, 3, 2 ], // back
-            [ 7, 4, 0, 3 ]
-        ]; // left
-
-        color("blue") //rotate([ 0, angle_deg, 0 ])
-            //translate([ aileron_root_chord_length , 0, aileron_start ])
-            rotate([0.1,-14,0])
-        {
-            union()
-            {
-                cylinder(h = aileron_length, r1 = aileron_root_hight / 2, r2 = aileron_tip_hight / 2);
-                polyhedron(CubePoints, CubeFaces);
+                translate([pt2[0] - aileron_thickness, pt2[1] - aileron_height / 2, pt2[2]])
+                    cube([aileron_thickness, aileron_height, 1], center = false);
             }
         }
+
+        // Offset for adjusting cylinder to ailerons void
+        offset_start = [ -aileron_thickness    , 0, 0 ];
+        offset_end   = [ -aileron_thickness + 1, 0, 1 ];
+        pt_start_cyl = [ pt_start[0] + offset_start[0], pt_start[1] + offset_start[1], pt_start[2] + offset_start[2] ];
+        pt_end_cyl   = [ pt_end[0] + offset_end[0], pt_end[1] + offset_end[1], pt_end[2] + offset_end[2] ];
+
+        color("red")
+            half_cylinder_between_points(pt_start_cyl, pt_end_cyl, aileron_cyl_radius);
     }
-    else
-    {
-                // find hight at aileron_start and aileron_root_width
+}
 
-        aileron_root_chord_length = ChordLengthAtPosition(aileron_start);
-        aileron_tip_chord_length = ChordLengthAtPosition(aileron_start + aileron_length);
-        //echo("aileron_root_chord_length: ", aileron_root_chord_length);
-        //echo("aileron_tip_chord_length: ", aileron_tip_chord_length);
 
-        aileron_root_hight = AirfoilHeightAtPosition(scalePath(af_vec_path_root, aileron_root_chord_length / 100), 50);
-        aileron_tip_hight = AirfoilHeightAtPosition(scalePath(af_vec_path_root, aileron_tip_chord_length / 100), 50);
-        echo("aileron_root_hight: ", aileron_root_hight);
-        echo("aileron_tip_hight: ", aileron_tip_hight);
 
-        //diff_center = (wing_center_line_perc / 100 * aileron_tip_chord_length) - (wing_center_line_perc / 100 * aileron_root_chord_length)
-        
-        diff_chords = (aileron_root_chord_length - aileron_tip_chord_length);
-        echo("diff_chords: ", diff_chords);
-        
-        angle_rad = atan2(-diff_chords, aileron_length);
+module half_cylinder_between_points(A, B, radius, extension = 20) {
+    V = [B[0] - A[0], B[1] - A[1], B[2] - A[2]];
+    h = norm(V);
 
-        // Convert to degrees
-        angle_deg = angle_rad * 180 / PI;
-/*
-        CubePoints = [
-            [ aileron_root_chord_length, -aileron_root_hight /2, 0 ],                                  // 0
-            [ aileron_root_chord_length + aileron_root_width + 1, -aileron_root_hight / 2, 0 ],             // 1
-            [ aileron_root_chord_length + aileron_root_width + 1, aileron_root_hight / 2, 0 ],              // 2
-            [ aileron_root_chord_length, aileron_root_hight / 2, 0 ],                                   // 3
-            [ 0, -aileron_tip_hight / 2, aileron_length ],                      // 4
-            [ 0 + aileron_tip_width + 1, -aileron_tip_hight / 2, aileron_length ], // 5
-            [ 0 + aileron_tip_width + 1, aileron_tip_hight / 2, aileron_length ],  // 6
-            [ 0, aileron_tip_hight / 2, aileron_length ]
-        ]; // 7*/
+    unit_V = [V[0]/h, V[1]/h, V[2]/h];
 
-        CubePoints = [
-            [ aileron_root_chord_length, -aileron_root_hight /2, 0 ],                                  // 0
-            [ aileron_root_chord_length + aileron_root_width + 1, -aileron_root_hight / 2, 0 ],             // 1
-            [ aileron_root_chord_length + aileron_root_width + 1, aileron_root_hight / 2, 0 ],              // 2
-            [ aileron_root_chord_length, aileron_root_hight / 2, 0 ],                                   // 3
-            [ aileron_root_chord_length, -aileron_tip_hight / 2, aileron_length ],                      // 4
-            [ aileron_root_chord_length + aileron_tip_width + 1, -aileron_tip_hight / 2, aileron_length ], // 5
-            [ aileron_root_chord_length + aileron_tip_width + 1, aileron_tip_hight / 2, aileron_length ],  // 6
-            [ aileron_root_chord_length, aileron_tip_hight / 2, aileron_length ]
-        ]; // 7
-        
-        
-        CubeFaces = [
-            [ 0, 1, 2, 3 ], // bottom
-            [ 4, 5, 1, 0 ], // front
-            [ 7, 6, 5, 4 ], // top
-            [ 5, 6, 2, 1 ], // right
-            [ 6, 7, 3, 2 ], // back
-            [ 7, 4, 0, 3 ]
-        ]; // left
+    // Extended Points
+    A_ext = [
+        A[0] - extension * unit_V[0],
+        A[1] - extension * unit_V[1],
+        A[2] - extension * unit_V[2]
+    ];
 
-        color("blue") //rotate([ 0, angle_deg, 0 ])
-            //translate([ aileron_root_chord_length , 0, aileron_start ])
-            //translate([ 0 , 0, aileron_start ])
-            //rotate([0.1,-14,0]) Change me here with the sweep angle
-            //rotate([0.1,0,0])
-        {
-            union()
-            {
-                cylinder(h = aileron_length, r1 = aileron_root_hight / 2, r2 = aileron_tip_hight / 2);
-                polyhedron(CubePoints, CubeFaces);
-            }
-        }
-    }
+    B_ext = [
+        B[0] + extension * unit_V[0],
+        B[1] + extension * unit_V[1],
+        B[2] + extension * unit_V[2]
+    ];
+
+    V_ext = [B_ext[0] - A_ext[0], B_ext[1] - A_ext[1], B_ext[2] - A_ext[2]];
+    h_ext = norm(V_ext);
+
+    angle_z = atan2(V_ext[1], V_ext[0]);
+    angle_y = acos(V_ext[2] / h_ext);
+
+    intersection() {
+    translate(A_ext)
+        rotate([0, angle_y, angle_z])    
+                difference() {
+                    // Full Cylinder
+                    cylinder(h = h_ext, r = radius, center = false);
+
+                    // Cut to get half cylinder
+                    translate([0, -2 * radius, 0])
+                        cube([radius, 4 * radius, h_ext]);
+                }
+
+    // We cut the extremities of cylinder to get something fitting to ailerons on edge
+    translate([-1000, -1000, A[2]])
+    cube([2000, 2000, B[2]-A[2]]); 
+ }           
 }
 
 module CreateAileron()
