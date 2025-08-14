@@ -22,10 +22,9 @@ module TipAirfoilPolygon()  {  airfoil_M18();  }
 
 
 // TODO 
-// Ailerons pin accroche + 
-// Emprunte servo perso
+// Emprunte servo wing root and ailerons
 // Bug if spar too long in comp to wing + Spar are incline, not straigt
-// Custom airfoil profil = Murat ?
+// Custom airfoil profil
 
 //*******************END***************************//
 
@@ -142,15 +141,18 @@ servo_show = false;       // for debugging only. Show the servo for easier place
 //******//
 
 //**************** Aileron settings **********//
-create_aileron = true;   // Create an Aileron
-aileron_thickness = 30;  // Aileron dimension on X axis toward Leading Edge
-aileron_height = 50;     // Aileron dimension on Y axis 
-aileron_start_z = 50;    // Aileron dimension on Z axis on Trailing Edge
-aileron_end_z = 180;     // Aileron dimension on Z axis on Trailing Edge
-aileron_cyl_radius = 15; // Aileron void cylinder radius 
-aileron_reduction = 1;   // Aileron size reduction to fit in the ailerons void with ease 
-cylindre_wing_dist_nosweep = 1; // Distance offset between cylinder and cube to avoid discontinuities in cut
-cylindre_wing_dist_sweep = 2; // Distance offset between cylinder and cube to avoid discontinuities in cut
+create_aileron = true;            // Create an Aileron
+aileron_thickness = 30;           // Aileron dimension on X axis toward Leading Edge
+aileron_height = 50;              // Aileron dimension on Y axis 
+aileron_start_z = 50;             // Aileron dimension on Z axis on Trailing Edge
+aileron_end_z = 180;              // Aileron dimension on Z axis on Trailing Edge
+aileron_cyl_radius = 15;          // Aileron void cylinder radius 
+aileron_reduction = 1;            // Aileron size reduction to fit in the ailerons void with ease 
+cylindre_wing_dist_nosweep = 1;   // Distance offset between cylinder and cube to avoid discontinuities in cut
+cylindre_wing_dist_sweep = 2;     // Distance offset between cylinder and cube to avoid discontinuities in cut
+aileron_pin_hole_diameter = 1.5;  // Diameter of the pin hole fixing the aileron to wing
+aileron_pin_hole_length = 7;      // Length of the pin hole
+aileron_pin_offset_x = 25;        // Offset on x of the pin hole
 //******//
 
 //**************** Other settings **********//

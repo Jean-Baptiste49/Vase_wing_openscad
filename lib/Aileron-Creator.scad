@@ -55,13 +55,19 @@ module CreateAileronVoid() {
         pt_end_cyl   = [ pt_end[0] + offset_end[0], pt_end[1] + offset_end[1], pt_end[2] + offset_end[2] ];
 
         color("red")
-  //          half_cylinder_between_points(pt_start_cyl, pt_end_cyl, aileron_cyl_radius, -2 *cylindre_wing_dist_sweep);
         if(use_custom_lead_edge_sweep) {
             half_cylinder_between_points_sweep(pt_start_cyl, pt_end_cyl, aileron_cyl_radius, cylindre_wing_dist_sweep);
         } else if (use_custom_lead_edge_sweep == false) {
             half_cylinder_between_points(pt_start_cyl, pt_end_cyl, aileron_cyl_radius, cylindre_wing_dist_nosweep);
         }        
     }
+                // Pin hole 
+            translate([
+            full_pts[len(full_pts) - 1][0] - aileron_pin_offset_x,        
+            full_pts[len(full_pts) - 1][1],  
+            full_pts[len(full_pts) - 1][2]  
+        ])
+            cylinder(h = aileron_pin_hole_length, r = aileron_pin_hole_diameter/2, center = true);
 }
 
 
@@ -87,7 +93,8 @@ module CreateAileron() {
     create_aileron_thickness = aileron_thickness - aileron_reduction;
     inner_pts = [for (pt = all_pts) if (pt[2] > aileron_start_z && pt[2] < aileron_end_z) pt];
     full_pts = concat(pt_start != undef ? [pt_start] : [], inner_pts, pt_end != undef ? [pt_end] : []);
-
+    
+    difference() {
 
     if (len(full_pts) >= 2) {
         for (i = [0 : len(full_pts) - 2]) {
@@ -112,6 +119,15 @@ module CreateAileron() {
         } else if (use_custom_lead_edge_sweep == false) {
             half_cylinder_between_points(pt_start_cyl, pt_end_cyl, aileron_cyl_radius, cylindre_wing_dist_nosweep);
         }
+    }
+
+            // Pin hole 
+            translate([
+            full_pts[len(full_pts) - 1][0] - aileron_pin_offset_x,        
+            full_pts[len(full_pts) - 1][1],  
+            full_pts[len(full_pts) - 1][2]  
+        ])
+            cylinder(h = aileron_pin_hole_length, r = aileron_pin_hole_diameter/2, center = true);
     }
 }
 
