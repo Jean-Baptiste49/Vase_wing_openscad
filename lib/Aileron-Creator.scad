@@ -55,7 +55,12 @@ module CreateAileronVoid() {
         pt_end_cyl   = [ pt_end[0] + offset_end[0], pt_end[1] + offset_end[1], pt_end[2] + offset_end[2] ];
 
         color("red")
-            half_cylinder_between_points(pt_start_cyl, pt_end_cyl, aileron_cyl_radius);
+  //          half_cylinder_between_points(pt_start_cyl, pt_end_cyl, aileron_cyl_radius, -2 *cylindre_wing_dist_sweep);
+        if(use_custom_lead_edge_sweep) {
+            half_cylinder_between_points_sweep(pt_start_cyl, pt_end_cyl, aileron_cyl_radius, cylindre_wing_dist_sweep);
+        } else if (use_custom_lead_edge_sweep == false) {
+            half_cylinder_between_points(pt_start_cyl, pt_end_cyl, aileron_cyl_radius, cylindre_wing_dist_nosweep);
+        }        
     }
 }
 
@@ -77,34 +82,40 @@ module CreateAileron() {
         )
         (len(valid) > 0) ? interpolate_pt(valid[0][0], valid[0][1], target_z) : undef;
 
-    pt_start = find_interpolated_point(aileron_start_z, all_pts);
-    pt_end   = find_interpolated_point(aileron_end_z, all_pts);
+    pt_start = find_interpolated_point(aileron_start_z + aileron_reduction, all_pts);
+    pt_end   = find_interpolated_point(aileron_end_z - aileron_reduction, all_pts);
+    create_aileron_thickness = aileron_thickness - aileron_reduction;
     inner_pts = [for (pt = all_pts) if (pt[2] > aileron_start_z && pt[2] < aileron_end_z) pt];
     full_pts = concat(pt_start != undef ? [pt_start] : [], inner_pts, pt_end != undef ? [pt_end] : []);
+
 
     if (len(full_pts) >= 2) {
         for (i = [0 : len(full_pts) - 2]) {
             pt1 = full_pts[i]; pt2 = full_pts[i+1];
 
             hull() {
-                translate([pt1[0] - aileron_thickness, pt1[1] - aileron_height / 2, pt1[2]])
-                    cube([aileron_thickness, aileron_height, 1], center = false);
-                translate([pt2[0] - aileron_thickness, pt2[1] - aileron_height / 2, pt2[2]-1]) // We withdraw 1 to stay in right dimension as the cube of z =1  is the extern limit 
-                    cube([aileron_thickness, aileron_height, 1], center = false); 
+                translate([pt1[0] - create_aileron_thickness, pt1[1] - aileron_height / 2, pt1[2]])
+                    cube([create_aileron_thickness, aileron_height, 1], center = false);
+                translate([pt2[0] - create_aileron_thickness, pt2[1] - aileron_height / 2, pt2[2]-1]) // We withdraw 1 to stay in right dimension as the cube of z =1  is the extern limit 
+                    cube([create_aileron_thickness, aileron_height, 1], center = false); 
             }
         }
 
-        offset_start = [ -aileron_thickness, 0, 0 ];
-        offset_end   = [ -aileron_thickness + 1, 0, 0 ];
+        offset_start = [ -create_aileron_thickness, 0, 0 ];
+        offset_end   = [ -create_aileron_thickness + 1, 0, 0 ];
         pt_start_cyl = [pt_start[0] + offset_start[0], pt_start[1] + offset_start[1], pt_start[2] + offset_start[2]];
         pt_end_cyl   = [pt_end[0]   + offset_end[0],   pt_end[1]   + offset_end[1],   pt_end[2]   + offset_end[2]];
 
         color("blue")
-            half_cylinder_between_points(pt_start_cyl, pt_end_cyl, aileron_cyl_radius);
+        if(use_custom_lead_edge_sweep) {
+            half_cylinder_between_points_sweep(pt_start_cyl, pt_end_cyl, aileron_cyl_radius, cylindre_wing_dist_sweep);
+        } else if (use_custom_lead_edge_sweep == false) {
+            half_cylinder_between_points(pt_start_cyl, pt_end_cyl, aileron_cyl_radius, cylindre_wing_dist_nosweep);
+        }
     }
 }
 
-module half_cylinder_between_points(A, B, radius, extension = 20) {
+module half_cylinder_between_points(A, B, radius, distance_cyl_cube, extension = 20) {
     V = [B[0] - A[0], B[1] - A[1], B[2] - A[2]];
     h = norm(V);
 
@@ -112,13 +123,57 @@ module half_cylinder_between_points(A, B, radius, extension = 20) {
 
     // Extended Points
     A_ext = [
-        A[0] - extension * unit_V[0],
+        A[0] - extension * unit_V[0] + distance_cyl_cube,
         A[1] - extension * unit_V[1],
         A[2] - extension * unit_V[2]
     ];
 
     B_ext = [
-        B[0] + extension * unit_V[0],
+        B[0] + extension * unit_V[0] + distance_cyl_cube,
+        B[1] + extension * unit_V[1],
+        B[2] + extension * unit_V[2]
+    ];
+
+    V_ext = [B_ext[0] - A_ext[0], B_ext[1] - A_ext[1], B_ext[2] - A_ext[2]];
+    h_ext = norm(V_ext);
+
+    angle_z = atan2(V_ext[1], V_ext[0]);
+    angle_y = acos(V_ext[2] / h_ext);
+
+    intersection() {
+    translate(A_ext)
+        rotate([0, angle_y, angle_z])    
+                intersection() {
+                    // Full Cylinder
+                    cylinder(h = h_ext, r = radius, center = false);
+
+                    // Cut to get half cylinder
+                    translate([0, -2 * radius, 0])
+                        cube([radius, 4 * radius, h_ext]);
+                }
+
+    // We cut the extremities of cylinder to get something fitting to ailerons on edge
+    translate([-1000, -1000, A[2]])
+    cube([2000, 2000, B[2]-A[2]]); 
+ }               
+}
+
+
+module half_cylinder_between_points_sweep(A, B, radius, distance_cyl_cube, extension = 20) {
+    V = [B[0] - A[0], B[1] - A[1], B[2] - A[2]];
+    h = norm(V);
+
+    unit_V = [V[0]/h, V[1]/h, V[2]/h];
+
+    // Extended Points
+    A_ext = [
+        A[0] - extension * unit_V[0] + distance_cyl_cube +10,
+        A[1] - extension * unit_V[1],
+        A[2] - extension * unit_V[2]
+    ];
+
+    B_ext = [
+        B[0] + extension * unit_V[0] + distance_cyl_cube +10,
         B[1] + extension * unit_V[1],
         B[2] + extension * unit_V[2]
     ];

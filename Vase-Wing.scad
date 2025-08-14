@@ -22,8 +22,9 @@ module TipAirfoilPolygon()  {  airfoil_M18();  }
 
 
 // TODO 
+// Ailerons pin accroche + 
 // Emprunte servo perso
-// Ailerons pin accroche
+// Bug if spar too long in comp to wing + Spar are incline, not straigt
 // Custom airfoil profil = Murat ?
 
 //*******************END***************************//
@@ -115,16 +116,16 @@ rib_offset = 1;   // Offset
 //******//
 
 //**************** Carbon Spar settings **********//
-spar_hole = false;                // Add a spar hole into the wing
+spar_hole = true;                // Add a spar hole into the wing
 spar_hole_perc = 35;             // Percentage from leading edge
 spar_hole_size = 5;              // Size of the spar hole
-spar_hole_length = 200;          // lenth of the spar in mm
+spar_hole_length = 100;          // lenth of the spar in mm
 spar_hole_offset = 4;            // Adjust where the spar is located
 spar_hole_void_clearance = 1; // Clearance for the spar to grid interface(at least double extrusion width is usually needed)
 // Second spar
 spar_hole_perc_2 = 60;             // Percentage from leading edge
 spar_hole_size_2 = 5;              // Size of the spar hole
-spar_hole_length_2 = 200;          // lenth of the spar in mm
+spar_hole_length_2 = 220;          // lenth of the spar in mm
 spar_hole_offset_2 = 3;            // Adjust where the spar is located
 spar_hole_void_clearance_2 = 1; 
 //******//
@@ -143,10 +144,13 @@ servo_show = false;       // for debugging only. Show the servo for easier place
 //**************** Aileron settings **********//
 create_aileron = true;   // Create an Aileron
 aileron_thickness = 30;  // Aileron dimension on X axis toward Leading Edge
-aileron_height = 30;     // Aileron dimension on Y axis 
+aileron_height = 50;     // Aileron dimension on Y axis 
 aileron_start_z = 50;    // Aileron dimension on Z axis on Trailing Edge
 aileron_end_z = 180;     // Aileron dimension on Z axis on Trailing Edge
-aileron_cyl_radius = 15;   // Aileron void cylinder radius 
+aileron_cyl_radius = 15; // Aileron void cylinder radius 
+aileron_reduction = 1;   // Aileron size reduction to fit in the ailerons void with ease 
+cylindre_wing_dist_nosweep = 1; // Distance offset between cylinder and cube to avoid discontinuities in cut
+cylindre_wing_dist_sweep = 2; // Distance offset between cylinder and cube to avoid discontinuities in cut
 //******//
 
 //**************** Other settings **********//
@@ -181,7 +185,8 @@ include <lib/Aileron-Creator.scad>
 
     
 module main()
-{
+{ 
+  if(Full_wing == false) {  
   intersection() {
     difference()
     {
@@ -302,8 +307,232 @@ module main()
   if(Tip_part) {
     translate([-1000, -1000, 2*wing_mm/3])
     cube([2000, 2000, wing_mm/3]); 
-  }  
+  } 
   }
+  } // End if Full wing
+  
+  
+  else if (Full_wing) {
+  union() {
+  intersection() {
+    difference()
+    {
+        difference()
+        {
+            CreateWing();
+
+            if (add_inner_grid)
+            {
+                union()
+                {
+                    difference()
+                    {
+                        difference()
+                        {
+                            if (grid_mode == 1)
+                            {
+                                StructureGrid(wing_mm, wing_root_chord_mm, grid_size_factor);
+                            }
+                            else
+                            {
+                                StructureSparGrid(wing_mm, wing_root_chord_mm, grid_size_factor, spar_num, spar_offset,
+                                                  rib_num, rib_offset);
+                            }
+                            union()
+                            {
+                                if (grid_mode == 1)
+                                {
+                                    if (create_rib_voids)
+                                    {
+                                        CreateRibVoids();
+                                    }
+                                }
+                                else
+                                {
+                                    if (create_rib_voids)
+                                    {
+                                        CreateRibVoids2();
+                                    }
+                                }
+                                union()
+                                {
+                                    if (spar_hole)
+                                    {
+                                        CreateSparVoid();
+                                        CreateSparVoid_2();
+                                    }
+                                    if (create_servo_void)
+                                    {
+                                        rotate([ 0, 0, servo_rotate_z_deg ])
+                                            translate([ servo_dist_le_mm, servo_dist_depth_mm, servo_dist_root_mm ])
+                                        {
+                                            if (servo_type == 1)
+                                            {
+                                                3_7gServoVoid();
+                                            }
+                                            else if (servo_type == 2)
+                                            {
+                                                5gServoVoid();
+                                            }
+                                            else if (servo_type == 3)
+                                            {
+                                                9gServoVoid();
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        CreateGridVoid();
+                    }
+                }
+            }
+        }
+        union()
+        {
+            if(create_aileron)
+            {
+                CreateAileronVoid();
+            }
+            if (spar_hole)
+            {
+                CreateSparHole();
+                CreateSparHole_2();
+            }
+            if (create_servo_void)
+            {
+                rotate([ 0, 0, servo_rotate_z_deg ])
+                    translate([ servo_dist_le_mm, servo_dist_depth_mm, servo_dist_root_mm ])
+                {
+                    if (servo_type == 1)
+                    {
+                        3_7gServo();
+                    }
+                    else if (servo_type == 2)
+                    {
+                        5gServo();
+                    }
+                    else if (servo_type == 3)
+                    {
+                        9gServo();
+                    }
+                }
+            }                
+        }
+    }
+  } // End 1st intersection
+  
+  
+    intersection() {
+    difference()
+    {
+        difference()
+        {
+            CreateWing();
+
+            if (add_inner_grid)
+            {
+                union()
+                {
+                    difference()
+                    {
+                        difference()
+                        {
+                            if (grid_mode == 1)
+                            {
+                                StructureGrid(wing_mm, wing_root_chord_mm, grid_size_factor);
+                            }
+                            else
+                            {
+                                StructureSparGrid(wing_mm, wing_root_chord_mm, grid_size_factor, spar_num, spar_offset,
+                                                  rib_num, rib_offset);
+                            }
+                            union()
+                            {
+                                if (grid_mode == 1)
+                                {
+                                    if (create_rib_voids)
+                                    {
+                                        CreateRibVoids();
+                                    }
+                                }
+                                else
+                                {
+                                    if (create_rib_voids)
+                                    {
+                                        CreateRibVoids2();
+                                    }
+                                }
+                                union()
+                                {
+                                    if (spar_hole)
+                                    {
+                                        CreateSparVoid();
+                                        CreateSparVoid_2();
+                                    }
+                                    if (create_servo_void)
+                                    {
+                                        rotate([ 0, 0, servo_rotate_z_deg ])
+                                            translate([ servo_dist_le_mm, servo_dist_depth_mm, servo_dist_root_mm ])
+                                        {
+                                            if (servo_type == 1)
+                                            {
+                                                3_7gServoVoid();
+                                            }
+                                            else if (servo_type == 2)
+                                            {
+                                                5gServoVoid();
+                                            }
+                                            else if (servo_type == 3)
+                                            {
+                                                9gServoVoid();
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        CreateGridVoid();
+                    }
+                }
+            }
+        }
+        union()
+        {
+            if (spar_hole)
+            {
+                CreateSparHole();
+                CreateSparHole_2();
+            }
+            if (create_servo_void)
+            {
+                rotate([ 0, 0, servo_rotate_z_deg ])
+                    translate([ servo_dist_le_mm, servo_dist_depth_mm, servo_dist_root_mm ])
+                {
+                    if (servo_type == 1)
+                    {
+                        3_7gServo();
+                    }
+                    else if (servo_type == 2)
+                    {
+                        5gServo();
+                    }
+                    else if (servo_type == 3)
+                    {
+                        9gServo();
+                    }
+                }
+            }                
+        }
+    }
+    if(create_aileron)
+    {
+    CreateAileron();
+    }
+  } // End 2nd intersection
+  } // End union in Full wing
+  
+  }// End if Full wing
 }
 
 
@@ -329,6 +558,7 @@ else
 {
 
     main();
+    //CreateAileron();
     if(debug_trailing_edge)
     {
         points_te = get_trailing_edge_points();     
