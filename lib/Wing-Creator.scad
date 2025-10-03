@@ -89,6 +89,8 @@ module CreateWing(low_res = false)
     local_wing_sections = low_res ? floor(wing_sections / 3) : wing_sections;
     wing_section_mm = wing_mm / local_wing_sections;
 
+    color([0,0.5,0.5, opacity]) //Option for opacity to see ribs through wing
+    
     if (wing_mode == 1)
     {
         translate([ wing_root_chord_mm * (wing_center_line_perc / 100), 0, 0 ]) union()

@@ -22,19 +22,14 @@ module TipAirfoilPolygon()  {  airfoil_M18();  }
 
 
 // TODO 
-// Grid adapt to sweep dim : OK
-// Grid cut middle follow curve : OK
-// transparent mode
-// Grid cut in no curve /sweep mode ? 
-// export to mode 1 wing
-// Add dummy piece Motor arm
-// Modify spars 
+// Print with bigger and clean curve on winglet
+// Unify spar hole function 
+// Arm design
+
 
 //Later :
 // Readme
 // Emprunte servo
-// Trou quand sweep bord de fuite
-// Bug if spar too long in comp to wing + Spar are incline, not straigt
 // Custom airfoil profil
 // Structure Grid Mode 1 Adapat ? 
 
@@ -47,12 +42,12 @@ module TipAirfoilPolygon()  {  airfoil_M18();  }
 Aileron_part = false;
 Root_part = false;
 Mid_part = false;
-Tip_part = true;
-Full_wing = false;
+Tip_part = false;
+Full_wing = true;
 
 //****************Wing Airfoil settings**********//
 wing_sections = 20; //60; // how many sections : more is higher resolution but higher processing
-wing_mm = 417;            // wing length in mm
+wing_mm = 600;            // wing length in mm
 wing_root_chord_mm = 228.2; // Root chord legth in mm
 wing_tip_chord_mm = 38.3;   // wing tip chord length in mm (Not relevant for elliptic wing);
 wing_center_line_perc = 70; // Percentage from the leading edge where you would like the wings center line
@@ -60,6 +55,11 @@ wing_mode = 2; // 1=trapezoidal wing 2= elliptic wing
 center_airfoil_change_perc = 100; // Where you want to change to the center airfoil 100 is off
 tip_airfoil_change_perc = 100;    // Where you want to change to the tip airfoil 100 is off
 slice_transisions = 0; // This is the number of slices that will be a blend of airfiols when airfoil is changed 0 is off
+// Total must do wing_mm
+motor_arm_width = 30;
+wing_root_mm = 180;
+wing_mid_mm = 240;
+wing_tip_mm = wing_mm - wing_root_mm - wing_mid_mm - motor_arm_width;
 //******//
 
 //****************Wing Washout settings**********//
@@ -76,8 +76,9 @@ lead_edge_sweep = [
   [100, 50],     
   [200, 100],     
   [300, 150],     
-  [350, 175],    
-  [417, 210]      
+  [400, 200],     
+  [500, 250],       
+  [600, 300]      
 ];
 //******//
 
@@ -87,26 +88,30 @@ curve_amplitude = 0.10;
 // ([z , y]
 lead_edge_curve_y = [
   [0,     0],
-  [100,   0],
-  [200,   0],
-  [250,   0],
-  [275,   0],
-  [300,   0],
-  [320,   25],
-  [340,  50],
-  [360,  100],
-  [370,  140], 
-  [375,  170],    
-  [380,  180],
-  [385,  230],  
-  [390,  250],
-  [395,  150],  
-  [400,  280],
-  [405,  300],
-  [410,  350],
-  [412,  350],
-  [414,  380],
-  [417,  400]
+  [500,   0],
+  [505,   0],
+  [510,   0],
+  [515,   0],
+  [520,   10],
+  [525,   25],
+  [527,   33],
+  [530,  50],
+  [533,  65],
+  [535,  75],
+  [540,  100],
+  [543,  120],
+  [545,  140], 
+  [550,  170],    
+  [555,  180],
+  [560,  230],  
+  [565,  250],
+  [570,  280],  
+  [575,  310],
+  [580,  330],
+  [585,  380],
+  [590,  420],
+  [595,  480],
+  [600,  550]
 ];
 //******//
 
@@ -127,18 +132,29 @@ rib_offset = 1;   // Offset
 //******//
 
 //**************** Carbon Spar settings **********//
+spar_length_offset = 515;
+spar_angle_fitting_coeff = 1.15; // Coeff to adjust the spar angle into the wing
+//Spar angle rotation to follow the sweep
+sweep_angle = use_custom_lead_edge_sweep ? atan((spar_angle_fitting_coeff * lead_edge_sweep[len(lead_edge_sweep) - 1][1]) / lead_edge_sweep[len(lead_edge_sweep) - 1][0]) : 0;
+
 spar_hole = true;                // Add a spar hole into the wing
-spar_hole_perc = 35;             // Percentage from leading edge
+spar_hole_perc = 25;             // Percentage from leading edge
 spar_hole_size = 5;              // Size of the spar hole
-spar_hole_length = 100;          // lenth of the spar in mm
-spar_hole_offset = 4;            // Adjust where the spar is located
+spar_hole_length = use_custom_lead_edge_sweep ? spar_length_offset/cos(sweep_angle) : spar_length_offset; // length of the spar in mm
+spar_hole_offset = 6.5;            // Adjust where the spar is located
 spar_hole_void_clearance = 1; // Clearance for the spar to grid interface(at least double extrusion width is usually needed)
 // Second spar
-spar_hole_perc_2 = 60;             // Percentage from leading edge
+spar_hole_perc_2 = 45;             // Percentage from leading edge
 spar_hole_size_2 = 5;              // Size of the spar hole
-spar_hole_length_2 = 220;          // lenth of the spar in mm
-spar_hole_offset_2 = 3;            // Adjust where the spar is located
+spar_hole_length_2= spar_hole_length; // length of the spar in mm
+spar_hole_offset_2 = 6.5;            // Adjust where the spar is located
 spar_hole_void_clearance_2 = 1; 
+// third spar
+spar_hole_perc_3 = 85;             // Percentage from leading edge
+spar_hole_size_3 = 5;              // Size of the spar hole
+spar_hole_length_3= 30 + motor_arm_width + wing_root_mm;// length of the spar in mm
+spar_hole_offset_3 = 0.5;            // Adjust where the spar is located
+spar_hole_void_clearance_3 = 1; 
 //******//
 
 //**************** Servo settings **********//
@@ -156,8 +172,8 @@ servo_show = false;       // for debugging only. Show the servo for easier place
 create_aileron = true;            // Create an Aileron
 aileron_thickness = 30;           // Aileron dimension on X axis toward Leading Edge
 aileron_height = 50;              // Aileron dimension on Y axis 
-aileron_start_z = 50;             // Aileron dimension on Z axis on Trailing Edge
-aileron_end_z = 180;              // Aileron dimension on Z axis on Trailing Edge
+aileron_start_z = wing_root_mm;   // Aileron dimension on Z axis on Trailing Edge
+aileron_end_z = wing_root_mm + wing_mid_mm;              // Aileron dimension on Z axis on Trailing Edge
 aileron_cyl_radius = 15;          // Aileron void cylinder radius 
 aileron_reduction = 1;            // Aileron size reduction to fit in the ailerons void with ease 
 cylindre_wing_dist_nosweep = 1;   // Distance offset between cylinder and cube to avoid discontinuities in cut
@@ -174,7 +190,14 @@ $fs = 1; // Min facet size
 slice_ext_width = 0.6;//Used for some of the interfacing and gap width values
 slice_gap_width = 0.01;//This is the gap in the outer skin.(smaller is better but is limited by what your slicer can recognise)
 debug_trailing_edge = false;
+opacity = 1;
 //******//
+
+//**************** Motor arm **********//
+ellipse_maj_ax = 15;        // ellipse's major axis (rayon z)
+ellipse_min_ax = 20;        // ellipse's minor axis (rayon y)
+motor_arm_length = 300;        // Tube length z
+
 
 //*******************END***************************//
 
@@ -245,8 +268,9 @@ module main()
                                 {
                                     if (spar_hole)
                                     {
-                                        CreateSparVoid();
-                                        CreateSparVoid_2();
+                                        CreateSparVoid(sweep_angle);
+                                        CreateSparVoid_2(sweep_angle);
+                                        CreateSparVoid_3(0);
                                     }
                                     if (create_servo_void)
                                     {
@@ -284,8 +308,9 @@ module main()
             }
             if (spar_hole)
             {
-                CreateSparHole();
-                CreateSparHole_2();
+                CreateSparHole(sweep_angle);
+                CreateSparHole_2(sweep_angle);
+                CreateSparHole_3(0); 
             }
             if (create_servo_void)
             {
@@ -313,21 +338,22 @@ module main()
   }
   if(Root_part) {
     translate([-1000, -1000, 0])
-    cube([2000, 2000, wing_mm/3]); 
+    cube([2000, 2000, wing_root_mm]); 
   }  
   if(Mid_part) {
-    translate([-1000, -1000, wing_mm/3])
-    cube([2000, 2000, wing_mm/3]); 
+    translate([-1000, -1000, wing_root_mm + motor_arm_width])
+    cube([2000, 2000, wing_mid_mm]); 
   }  
   if(Tip_part) {
-    translate([-1000, -1000, 2*wing_mm/3])
-    cube([2000, 2000, wing_mm/3]); 
+    translate([-1000, -1000, wing_root_mm + motor_arm_width + wing_mid_mm])
+    cube([2000, 2000, wing_tip_mm]); 
   } 
   }
   } // End if Full wing
   
   
   else if (Full_wing) {
+  difference() {
   union() {
   intersection() {
     difference()
@@ -373,8 +399,9 @@ module main()
                                 {
                                     if (spar_hole)
                                     {
-                                        CreateSparVoid();
-                                        CreateSparVoid_2();
+                                        CreateSparVoid(sweep_angle);
+                                        CreateSparVoid_2(sweep_angle);
+                                        CreateSparVoid_3(0);
                                     }
                                     if (create_servo_void)
                                     {
@@ -411,8 +438,9 @@ module main()
             }
             if (spar_hole)
             {
-                CreateSparHole();
-                CreateSparHole_2();
+                CreateSparHole(sweep_angle);
+                CreateSparHole_2(sweep_angle);
+                CreateSparHole_3(0); 
             }
             if (create_servo_void)
             {
@@ -437,7 +465,7 @@ module main()
     }
   } // End 1st intersection
   
-  
+    // This part is to have aileron with the rest of the wing in full wing mode
     intersection() {
     difference()
     {
@@ -482,8 +510,9 @@ module main()
                                 {
                                     if (spar_hole)
                                     {
-                                        CreateSparVoid();
-                                        CreateSparVoid_2();
+                                        CreateSparVoid(sweep_angle);
+                                        CreateSparVoid_2(sweep_angle);
+                                        CreateSparVoid_3(0);
                                     }
                                     if (create_servo_void)
                                     {
@@ -516,8 +545,9 @@ module main()
         {
             if (spar_hole)
             {
-                CreateSparHole();
-                CreateSparHole_2();
+                CreateSparHole(sweep_angle);
+                CreateSparHole_2(sweep_angle);
+                CreateSparHole_3(0); 
             }
             if (create_servo_void)
             {
@@ -546,11 +576,51 @@ module main()
     }
   } // End 2nd intersection
   } // End union in Full wing
-  
+    //Union for showing separation between parts. Just for display
+    union(){
+      translate([ -500, -500, wing_root_mm ])
+        cube([ 1000, 1000, motor_arm_width ]);        
+        
+      translate([ -500, -500, wing_root_mm -1 ])
+        cube([ 1000, 1000, 1 ]);
+        
+      translate([ -500, -500, wing_root_mm + motor_arm_width])
+        cube([ 1000, 1000, 1 ]);    
+
+      translate([ -500, -500, wing_root_mm + motor_arm_width + wing_mid_mm])
+        cube([ 1000, 1000, 1 ]);         
+    }
+    
+  } // End difference 
   }// End if Full wing
 }
 
 
+module motor_arm_creation(a, b, h) {
+    all_pts = get_trailing_edge_points();
+    
+        function interpolate_pt(p1, p2, target_z) =
+        let (dz = p2[2] - p1[2], t = (target_z - p1[2]) / dz)
+        [ p1[0] + t * (p2[0] - p1[0]), p1[1] + t * (p2[1] - p1[1]), target_z ];
+
+    function find_interpolated_point(target_z, pts) =
+        let (
+            pairs = [for (i = [0 : len(pts) - 2]) [pts[i], pts[i+1]]],
+            valid = [ for (pr = pairs) if ((pr[0][2] <= target_z && target_z <= pr[1][2]) || (pr[1][2] <= target_z && target_z <= pr[0][2])) pr ]
+        )
+        (len(valid) > 0) ? interpolate_pt(valid[0][0], valid[0][1], target_z) : undef;
+    
+    pt_start = find_interpolated_point(wing_root_mm, all_pts);
+    
+    translate([ pt_start[0], 10, wing_root_mm+a])
+        rotate([ 0, -90, 0 ])
+            
+            linear_extrude(height = h)
+                scale([1, b/a])
+                    circle(r = a, $fn=100); 
+            
+
+}
 
 
 
@@ -573,9 +643,14 @@ else
 {
 
     main();
-    //StructureSparGrid(3*wing_mm, wing_root_chord_mm, grid_size_factor, spar_num, spar_offset,3*rib_num, rib_offset);
-    //CreateAileron();
-    //CreateGridVoid();
+    //motor_arm_creation(ellipse_maj_ax, ellipse_min_ax, motor_arm_length);
+    //StructureSparGrid(3*wing_mm, wing_root_chord_mm, grid_size_factor, spar_num, spar_offset, 3*rib_num, rib_offset);
+    //CreateSparVoid(sweep_angle);
+    //CreateSparVoid_2(sweep_angle);
+    //CreateSparHole(sweep_angle);
+    //CreateSparHole_2(sweep_angle);  
+    //CreateSparVoid_3(0);
+    //CreateSparHole_3(0); 
     if(debug_trailing_edge)
     {
         points_te = get_trailing_edge_points();     
