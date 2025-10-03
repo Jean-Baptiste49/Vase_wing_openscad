@@ -75,7 +75,7 @@ module StructureSparGrid(wing_mm, root_chord, size_factor, spar_num, spar_offset
             for (i = [0:rib_num])
             {
                 translate([ 0, -root_chord / 3 / 2, space_bet_ribs * i ]) color("green") rotate([ 0, 55, 0 ])
-                    cube([ root_chord * 2, root_chord / 3, slice_gap_width ]);
+                    cube([ root_chord * 4, root_chord / 3, slice_gap_width ]);
             }
         }
     }

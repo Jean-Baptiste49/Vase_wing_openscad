@@ -22,9 +22,21 @@ module TipAirfoilPolygon()  {  airfoil_M18();  }
 
 
 // TODO 
-// Emprunte servo wing root and ailerons
+// Grid adapt to sweep dim : OK
+// Grid cut middle follow curve : OK
+// transparent mode
+// Grid cut in no curve /sweep mode ? 
+// export to mode 1 wing
+// Add dummy piece Motor arm
+// Modify spars 
+
+//Later :
+// Readme
+// Emprunte servo
+// Trou quand sweep bord de fuite
 // Bug if spar too long in comp to wing + Spar are incline, not straigt
 // Custom airfoil profil
+// Structure Grid Mode 1 Adapat ? 
 
 //*******************END***************************//
 
@@ -35,8 +47,8 @@ module TipAirfoilPolygon()  {  airfoil_M18();  }
 Aileron_part = false;
 Root_part = false;
 Mid_part = false;
-Tip_part = false;
-Full_wing = true;
+Tip_part = true;
+Full_wing = false;
 
 //****************Wing Airfoil settings**********//
 wing_sections = 20; //60; // how many sections : more is higher resolution but higher processing
@@ -71,7 +83,7 @@ lead_edge_sweep = [
 
 //**************** Wing Y curve settings **********//
 use_custom_lead_edge_curve = true; 
-curve_amplitude = 0.15;
+curve_amplitude = 0.10;
 // ([z , y]
 lead_edge_curve_y = [
   [0,     0],
@@ -87,14 +99,14 @@ lead_edge_curve_y = [
   [375,  170],    
   [380,  180],
   [385,  230],  
-  [390,  280],
-  [395,  330],  
-  [400,  380],
-  [405,  430],
-  [410,  480],
-  [412,  500],
-  [414,  530],
-  [417,  550]
+  [390,  250],
+  [395,  150],  
+  [400,  280],
+  [405,  300],
+  [410,  350],
+  [412,  350],
+  [414,  380],
+  [417,  400]
 ];
 //******//
 
@@ -110,7 +122,7 @@ grid_size_factor = 2; // changes the size of the inner grid blocks
 //**************** Grid mode 2 settings **********//
 spar_num = 3;     // Number of spars for grid mode 2
 spar_offset = 15; // Offset the spars from the LE/TE
-rib_num = 6;      // Number of ribs
+rib_num = 12; //6;      // Number of ribs
 rib_offset = 1;   // Offset
 //******//
 
@@ -210,8 +222,8 @@ module main()
                             }
                             else
                             {
-                                StructureSparGrid(wing_mm, wing_root_chord_mm, grid_size_factor, spar_num, spar_offset,
-                                                  rib_num, rib_offset);
+                                StructureSparGrid(3*wing_mm, wing_root_chord_mm, grid_size_factor, spar_num, spar_offset,
+                                                  3*rib_num, rib_offset);
                             }
                             union()
                             {
@@ -258,6 +270,7 @@ module main()
                                 }
                             }
                         }
+                        //Use for create void between each ribs to have a 3D vase print path
                         CreateGridVoid();
                     }
                 }
@@ -560,7 +573,9 @@ else
 {
 
     main();
+    //StructureSparGrid(3*wing_mm, wing_root_chord_mm, grid_size_factor, spar_num, spar_offset,3*rib_num, rib_offset);
     //CreateAileron();
+    //CreateGridVoid();
     if(debug_trailing_edge)
     {
         points_te = get_trailing_edge_points();     

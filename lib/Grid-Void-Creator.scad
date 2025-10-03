@@ -133,67 +133,74 @@ module GridSlice(z_location, i, LE)
     }
 }
 
-module CreateGridVoid()
+module CreateGridVoid(low_res = false)
 {
-    wing_section_mm = wing_mm / wing_sections;
-    if (wing_mode == 1)
-    {
+    local_wing_sections = low_res ? floor(wing_sections / 3) : wing_sections;
+    wing_section_mm = wing_mm / local_wing_sections;
+
+
         translate([ wing_root_chord_mm * (wing_center_line_perc / 100), 0, 0 ]) union()
         {
             color("red") union()
             {
                 for (i = [0:wing_sections])
                 {
+                    pos = f(i, local_wing_sections, wing_mm);
+                    npos = f(i + 1, local_wing_sections, wing_mm);
+
+                    y0 = use_custom_lead_edge_curve ? interpolate_y(pos) * curve_amplitude : 0;
+                    y1 = use_custom_lead_edge_curve ? interpolate_y(npos) * curve_amplitude : 0;
+
+                    x_off0 = use_custom_lead_edge_sweep ? interpolate_x(pos) : 0;
+                    x_off1 = use_custom_lead_edge_sweep ? interpolate_x(npos) : 0;
+
                     hull()
                     {
-                        GridSlice(wing_section_mm * i, i, true);
-                        GridSlice(wing_section_mm * (i + 1), i + 1, true);
-                    }
-                }
-            }
-            color("green") union()
-            {
-                for (i = [0:wing_sections])
-                {
-                    hull()
-                    {
-                        GridSlice(wing_section_mm * i, i, false);
-                        GridSlice(wing_section_mm * (i + 1), i + 1, false);
-                    }
-                }
-            }
-        }
-    }
-    else
-    {
-        translate([ wing_root_chord_mm * (wing_center_line_perc / 100), 0, 0 ]) union()
-        {
-            color("red") union()
-            {
-                for (i = [0:wing_sections])
-                {
-                    pos = f(i, wing_sections, wing_mm);
-                    npos = f((i + 1), wing_sections, wing_mm);
-                    hull()
-                    {
-                        GridSlice(pos, i, true);
-                        GridSlice(npos, (i + 1), true);
-                    }
+                        translate([x_off0, y0, 0])
+                            GridSlice(pos, i, true);
+                        translate([x_off1, y1, 0])
+                            GridSlice(npos, (i + 1), true);
+                    }                    
+                    
+                    //pos = f(i, wing_sections, wing_mm);
+                    //npos = f((i + 1), wing_sections, wing_mm);
+                    //hull()
+                   // {
+                    //    GridSlice(pos, i, true);
+                    //    GridSlice(npos, (i + 1), true);
+                   // }
                 }
             }
             color("blue") union()
             {
                 for (i = [0:wing_sections])
                 {
+                    
+                    pos = f(i, local_wing_sections, wing_mm);
+                    npos = f(i + 1, local_wing_sections, wing_mm);
+
+                    y0 = use_custom_lead_edge_curve ? interpolate_y(pos) * curve_amplitude : 0;
+                    y1 = use_custom_lead_edge_curve ? interpolate_y(npos) * curve_amplitude : 0;
+
+                    x_off0 = use_custom_lead_edge_sweep ? interpolate_x(pos) : 0;
+                    x_off1 = use_custom_lead_edge_sweep ? interpolate_x(npos) : 0;
+
+                    hull()
+                    {
+                        translate([x_off0, y0, 0])
+                            GridSlice(pos, i, false);
+                        translate([x_off1, y1, 0])
+                            GridSlice(npos, (i + 1), false);
+                    }  
+                    /*
                     pos = f(i, wing_sections, wing_mm);
                     npos = f((i + 1), wing_sections, wing_mm);
                     hull()
                     {
                         GridSlice(pos, i, false);
                         GridSlice(npos, (i + 1), false);
-                    }
+                    }*/
                 }
             }
         }
-    }
 }
