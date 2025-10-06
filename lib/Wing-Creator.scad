@@ -184,7 +184,6 @@ function search_index_helper_z_y(arr, z, i) =
     search_index_helper_z_y(arr, z, i+1);  
     
  
-//****************Tools function for Trailing Edge points retrieval  **********// 
 function rotate2D(pt, angle_deg, pivot) =
     let (
         angle = angle_deg * PI / 180,
@@ -195,7 +194,7 @@ function rotate2D(pt, angle_deg, pivot) =
     )
     [ x_rot, y_rot ];
 
-    
+//****************Tools function for Trailing Edge points retrieval  **********//     
 function trailing_edge_point(index, local_wing_sections) =
     let (
         // Position envergure
@@ -247,45 +246,56 @@ module show_trailing_edge_points(points) {
 function get_trailing_edge_points(local_wing_sections = wing_sections) =
     [ for (i = [0 : local_wing_sections]) trailing_edge_point(i, local_wing_sections) ];
        
-   
+
+
+//****************Tools function for Leading Edge points retrieval  **********//  
+function leading_edge_point(index, local_wing_sections) =
+    let (
+        // Spanwise position
+        z = (wing_mode == 1) ? (index * wing_mm / local_wing_sections)
+                             : f(index, local_wing_sections, wing_mm),
+
+        // Chord length
+        chord = (wing_mode == 1) ? ChordLengthAtIndex(index, local_wing_sections)
+                                 : ChordLengthAtEllipsePosition((wing_mm + 0.1), wing_root_chord_mm, z),
+
+        // Washout parameters
+        washout_start_point = (wing_mode == 1)
+                                ? (local_wing_sections * (washout_start / 100))
+                                : WashoutStart(0, local_wing_sections, washout_start, wing_mm),
+        washout_deg_frac = (local_wing_sections - washout_start_point > 0) ? (washout_deg / (local_wing_sections - washout_start_point)) : 0,
+        washout_deg_amount = (index > washout_start_point) ? (index - washout_start_point) * washout_deg_frac : 0,
+        washout_pivot = chord * (washout_pivot_perc / 100),
+
+        // Raw LE point in local 2D profile
+        x_le = 0,
+        y_le = 0,
+
+        // Shift origin to string center
+        x_local = x_le - (wing_center_line_perc / 100) * chord,
+        y_local = y_le,
+
+        // Apply washout rotation
+        rotated = (washout_deg_amount != 0)
+                    ? rotate2D([x_local, y_local], washout_deg_amount, washout_pivot - (wing_center_line_perc / 100) * chord)
+                    : [x_local, y_local],
+
+        // Sweep and curvature offsets
+        x_sweep = use_custom_lead_edge_sweep ? interpolate_x(z) : 0,
+        y_curve = use_custom_lead_edge_curve ? interpolate_y(z) * curve_amplitude : 0,
+
+        // Global offset
+        global_offset = [ wing_root_chord_mm * (wing_center_line_perc / 100), 0, 0 ],
+
+        // Final leading edge point in 3D space
+        point = [rotated[0] + x_sweep, rotated[1] + y_curve, z] + global_offset
+    )
+    point;
+  
+module show_leading_edge_points(points) {
+    for (p = points)
+        translate(p) color("blue") sphere(r = 1.5);
+}
     
-//****************Old CreateWing Module**********// 
-/*
-module CreateWing(low_res = false)
-{
-    local_wing_sections = low_res ? floor(wing_sections / 3) : wing_sections;
-    wing_section_mm = wing_mm / local_wing_sections;
-    if (wing_mode == 1)
-    {
-        translate([ wing_root_chord_mm * (wing_center_line_perc / 100), 0, 0 ]) union()
-        {
-            for (i = [0:local_wing_sections - 1])
-            {
-                hull()
-                {
-                    WingSlice(i, wing_section_mm * i, local_wing_sections);
-                    WingSlice(i + 1, wing_section_mm * (i + 1), local_wing_sections);
-                }
-            }
-        }
-    }
-    else
-    {
-        for (i = [0:local_wing_sections])
-        {
-            pos = f(i, local_wing_sections, wing_mm);
-            npos = f(i + 1, local_wing_sections, wing_mm);
-            translate([ wing_root_chord_mm * (wing_center_line_perc / 100), 0, 0 ]) union()
-            {
-                hull()
-                {
-                    WingSlice(i, pos, local_wing_sections);
-                    WingSlice(i + 1, npos, local_wing_sections);
-                }
-                // color("red")
-                // translate([0,0,pos])
-                // sphere(3);
-            }
-        }
-    }
-}*/
+function get_leading_edge_points(local_wing_sections = wing_sections) =
+    [ for (i = [0 : local_wing_sections]) leading_edge_point(i, local_wing_sections) ];
