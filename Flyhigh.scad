@@ -22,8 +22,6 @@ module TipAirfoilPolygon()  {  airfoil_M18();  }
 
 
 // TODO 
-// Add debug leading edge
-// Tracer CG
 // Arm design
 
 
@@ -32,6 +30,7 @@ module TipAirfoilPolygon()  {  airfoil_M18();  }
 // Emprunte servo
 // Custom airfoil profil
 // Structure Grid Mode 1 Adapat ? 
+// Update to new version openscad
 
 //*******************END***************************//
 
@@ -60,7 +59,9 @@ motor_arm_width = 30;
 wing_root_mm = 180;
 wing_mid_mm = 240;
 wing_tip_mm = wing_mm - wing_root_mm - wing_mid_mm - motor_arm_width;
-aerodyn_center_plot = true;
+AC_CG_margin = 10; //Margin between mean aerodynamic center and gravity center in pourcentage
+aerodyn_center_plot = true; //Black
+gravity_center_plot = true; //Green
 //******//
 
 //****************Wing Washout settings**********//
@@ -221,6 +222,8 @@ include <lib/Spar-Hole.scad>
 include <lib/Wing-Creator.scad>
 include <lib/Aileron-Creator.scad>
 include <lib/Motor-arm.scad>
+include <lib/Tools.scad>
+
 
 
     
@@ -604,99 +607,28 @@ module main()
 
 
 
-  
 
 
 
-module aerodynamic_center(wing_mode_shape, wing_root_chord, wing_tip_chord, wingspan) {
+module motor_arm(a, b, h, aero_grav_center) {
+   
+    //**************** Module **********//  
+
+
     
-     
-        
-        function get_section_centers(pts_le, pts_te) = 
-        [ for (i = [0 : len(pts_le) - 2]) 
-         let (
-        midpoint_1 = midpoint(pts_le[i+1], pts_le[i]),
-        midpoint_2 = midpoint(pts_te[i+1], pts_te[i]),
-        center = midpoint(midpoint_1,midpoint_2)
-        )
-        midpoint(midpoint_1,center)
-        ];
-
-
-        function vector_subtract(a, b) = [a[0] - b[0], a[1] - b[1], a[2] - b[2]];    
-    
-        function trapezoid_area(le1, te1, le2, te2) =
-        let (
-        c1 = norm(vector_subtract(le1, te1)),
-        c2 = norm(vector_subtract(le2, te2)),
-        dz = le2[2] - le1[2]
-        )      
-        0.5 * (c1 + c2) * abs(dz);
-
-        function midpoint(p1, p2) = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2, (p1[2] + p2[2]) / 2];
-
-        function distance_le_to_midpoint(le2, le1,le_root) = 
-        let (mid = midpoint(le2, le1))
-        //norm(mid - le);  //if you want other axis
-        abs(mid[0] - le_root[0]);
-
-        function wing_section_data(pts_le, pts_te) = 
-         [ for (i = [0 : len(pts_le) - 2])
-        let (
-            le1 = pts_le[i],
-            le2 = pts_le[i + 1],
-            te1 = pts_te[i],
-            te2 = pts_te[i + 1],
-            area = trapezoid_area(le1, te1, le2, te2),
-            midpoint_1 = midpoint(pts_le[i+1], pts_le[i]),
-            midpoint_2 = midpoint(pts_te[i+1], pts_te[i]),
-            center = midpoint(midpoint_1,midpoint_2),
-            local_CA = midpoint(midpoint_1,center),
-            dist_le_to_ca = abs(local_CA[0] - pts_le[0][0]) 
-        )
-        [area, dist_le_to_ca]
-        ];
-         
-        pts_te = get_trailing_edge_points();  
-        pts_le = get_leading_edge_points(); 
-         
-        //Get all the wing sections 
-        sections = wing_section_data(pts_le, pts_te);
-        //HERE Get AC 
-        //aerodynamic_center =  sum([for (p = sections) p[i][1]]); // / p[i][0]]) ;
-        //sum([for (p = sections) p[i][0]]) *
-        
-        // Display
-        for (i = [0 : len(sections) - 1])
-            echo("Section", i, ": Area =", sections[i][0], "Dist LE -> center =", sections[i][1]);
-  
-        for (i = [0 : len(pts_le) - 2]) {
-        p1 = pts_le[i];
-        p2 = pts_le[i+1];
-        p3 = pts_te[i+1];
-        p4 = pts_te[i];
-        // Draw polyhedron of each section
-        color("white")
-        polyhedron(
-            points = [p1, p2, p3, p4],
-            faces = [[0, 1, 2, 3]]
-        );
+    translate([ aero_grav_center[1] + h, 10, wing_root_mm+a])
+        rotate([ 0, -90, 0 ])
             
-        centers = get_section_centers(pts_le, pts_te);    
-        for (p = centers)
-            translate(p) color("orange") sphere(r = 1.5);  
-    }
- 
-         
-         
-         
-        /*aerodyn_ctr = wing_mode == 1 ? aero_trap : aero_elliptic;
-        echo ("CA");
-        echo (aerodyn_ctr);
-        color("black") 
-        translate([ aerodyn_ctr, 0, 0 ])
-        cube([ 1, 100, 100 ]);*/
+            linear_extrude(height = 2*h)
+                scale([1, b/a])
+                    circle(r = a, $fn=100); 
+            
+
 }
+
+
+
+
 
   
     
@@ -715,10 +647,10 @@ else if (add_inner_grid == false && spar_hole == true)
 else
 {
 
-    //aerodyn_center = aerodynamic_center_calc_elliptic(wing_mode, wing_root_chord_mm, wing_tip_chord_mm, wing_mm);
-    aerodynamic_center(wing_mode, wing_root_chord_mm, wing_tip_chord_mm, wing_mm);
+    aerodynamic_gravity_center(wing_mm, AC_CG_margin, display_surface = false, display_point = true);
+    aero_grav_center = get_gravity_aero_center(AC_CG_margin);
     main();
-    motor_arm_creation(ellipse_maj_ax, ellipse_min_ax, motor_arm_length);
+    motor_arm(ellipse_maj_ax, ellipse_min_ax, motor_arm_length, aero_grav_center);
     
     if(debug_leading_trailing_edge)
     {
