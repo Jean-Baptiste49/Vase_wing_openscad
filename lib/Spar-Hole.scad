@@ -21,7 +21,7 @@ module CreateSparHole(sweep_ang, hole_offset, hole_perc, hole_size, hole_length,
     }
 }
 
-module CreateSparVoid(sweep_ang, hole_offset, hole_perc, hole_size, hole_length, wing_root_chord, hole_void_clearance)
+module CreateSparVoid(sweep_ang, hole_offset, hole_perc, hole_size, hole_length, wing_root_chord, hole_void_clearance, flip_side)
 {   
     translate([ 0, hole_offset - extra_spar_hole_bot_offset, 0 ]) 
     union()
@@ -31,7 +31,7 @@ module CreateSparVoid(sweep_ang, hole_offset, hole_perc, hole_size, hole_length,
         rotate([ 0, sweep_ang, 0 ]) //Spar angle rotation to follow the sweep
             cylinder(h = hole_length, r = hole_size / 2 + (hole_void_clearance / 2));
         color("brown") 
-        translate([ hole_perc / 100 * wing_root_chord - ((hole_size + hole_void_clearance)/2), 0, 0 ])
+        translate([ hole_perc / 100 * wing_root_chord - ((hole_size + hole_void_clearance)/2), -flip_side, 0 ])
         rotate([ 0, sweep_ang, 0 ]) //Spar angle rotation to follow the sweep
         cube([ hole_size + hole_void_clearance, 100, hole_length ]);
     }

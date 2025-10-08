@@ -66,7 +66,7 @@
 
 
 
-module aerodynamic_gravity_center(wingspan, AC_CG_marg,  display_surface = false, display_point = false) {
+module aerodynamic_gravity_center(wingspan, AC_CG_marg,  display_surface = false, display_point = false, aero_center_plot = false, grav_center_plot = false) {
     
              
         //**************** Module **********// 
@@ -108,12 +108,16 @@ module aerodynamic_gravity_center(wingspan, AC_CG_marg,  display_surface = false
     }
 
         // Draw AC reference
-        color("black") 
-        translate([ aero_grav_center[0], -50, 0 ])
-        cube([ 1, 100, wingspan ]);
+        if(aero_center_plot){
+            color("black") 
+            translate([ aero_grav_center[0], -50, 0 ])
+            cube([ 1, 100, wingspan ]);
+        }
     
         // Draw CG reference
-        color("green") 
-        translate([ aero_grav_center[1], -50, 0 ])
-        cube([ 1, 100, wingspan ]);
+        if(grav_center_plot){
+            color("green") 
+            translate([ aero_grav_center[1], -50, 0 ])
+            cube([ 1, 100, wingspan ]);
+        }
 }
