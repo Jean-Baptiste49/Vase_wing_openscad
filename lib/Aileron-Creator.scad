@@ -1,3 +1,6 @@
+y_offset_aileron_to_wing = 1.0;
+x_offset_aileron_cylinder_to_cube = 2.0; //As the hull an discontinuite assembling of cube, there is a tiny between the cylinder connecting the wing and the rest of the aileron. You can adjust the filling of this gap with this offset
+
 module CreateAileronVoid() {
     all_pts = get_trailing_edge_points();
 
@@ -40,17 +43,17 @@ module CreateAileronVoid() {
             pt2 = full_pts[i + 1];
 
             hull() {
-                translate([pt1[0] - aileron_thickness-1, pt1[1] - aileron_height / 2, pt1[2]])
-                    cube([aileron_thickness+1, aileron_height, 1], center = false);
+                translate([pt1[0] - aileron_thickness - x_offset_aileron_cylinder_to_cube, pt1[1] - aileron_height / 2, pt1[2]])
+                    cube([x_offset_aileron_cylinder_to_cube + aileron_thickness+1, aileron_height, 1], center = false);
 
-                translate([pt2[0] - aileron_thickness-1, pt2[1] - aileron_height / 2, pt2[2]-1]) // We withdraw 1 to stay in right dimension as the cube of z =1  is the extern limit 
-                    cube([aileron_thickness+1, aileron_height, 1], center = false);
+                translate([pt2[0] - aileron_thickness-x_offset_aileron_cylinder_to_cube, pt2[1] - aileron_height / 2, pt2[2]-1]) // We withdraw 1 to stay in right dimension as the cube of z =1  is the extern limit 
+                    cube([x_offset_aileron_cylinder_to_cube + aileron_thickness+1, aileron_height, 1.01], center = false);
             }
         }
 
         // Offset for adjusting cylinder to ailerons void
-        offset_start = [ -aileron_thickness    , 0, 0 ];
-        offset_end   = [ -aileron_thickness + 1, 0, 0 ];
+        offset_start = [ -aileron_thickness    , y_offset_aileron_to_wing, 0 ];
+        offset_end   = [ -aileron_thickness + 1, y_offset_aileron_to_wing, 0 ];
         pt_start_cyl = [ pt_start[0] + offset_start[0], pt_start[1] + offset_start[1], pt_start[2] + offset_start[2] ];
         pt_end_cyl   = [ pt_end[0] + offset_end[0], pt_end[1] + offset_end[1], pt_end[2] + offset_end[2] ];
 
@@ -101,15 +104,15 @@ module CreateAileron() {
             pt1 = full_pts[i]; pt2 = full_pts[i+1];
 
             hull() {
-                translate([pt1[0] - create_aileron_thickness, pt1[1] - aileron_height / 2, pt1[2]])
-                    cube([create_aileron_thickness, aileron_height, 1], center = false);
-                translate([pt2[0] - create_aileron_thickness, pt2[1] - aileron_height / 2, pt2[2]-1]) // We withdraw 1 to stay in right dimension as the cube of z =1  is the extern limit 
-                    cube([create_aileron_thickness, aileron_height, 1], center = false); 
+                translate([pt1[0] - create_aileron_thickness-x_offset_aileron_cylinder_to_cube, pt1[1] - aileron_height / 2, pt1[2]])
+                    cube([x_offset_aileron_cylinder_to_cube + create_aileron_thickness, aileron_height, 1], center = false);
+                translate([pt2[0] - create_aileron_thickness-x_offset_aileron_cylinder_to_cube, pt2[1] - aileron_height / 2, pt2[2]-1]) // We withdraw 1 to stay in right dimension as the cube of z =1  is the extern limit 
+                    cube([x_offset_aileron_cylinder_to_cube + create_aileron_thickness, aileron_height, 1], center = false); 
             }
         }
 
-        offset_start = [ -create_aileron_thickness, 0, 0 ];
-        offset_end   = [ -create_aileron_thickness + 1, 0, 0 ];
+        offset_start = [ -create_aileron_thickness, y_offset_aileron_to_wing, 0 ];
+        offset_end   = [ -create_aileron_thickness + 1, y_offset_aileron_to_wing, 0 ];
         pt_start_cyl = [pt_start[0] + offset_start[0], pt_start[1] + offset_start[1], pt_start[2] + offset_start[2]];
         pt_end_cyl   = [pt_end[0]   + offset_end[0],   pt_end[1]   + offset_end[1],   pt_end[2]   + offset_end[2]];
 
