@@ -27,7 +27,7 @@ module CreateSparHole(sweep_ang, hole_offset, hole_perc, hole_size, hole_length,
     }
 }
 
-module CreateSparVoid(sweep_ang, hole_offset, hole_perc, hole_size, hole_length, wing_root_chord, hole_void_clearance, , spar_flip_side = false)
+module CreateSparVoid(sweep_ang, hole_offset, hole_perc, hole_size, hole_length, wing_root_chord, hole_void_clearance, spar_flip_side = false)
 {   
     
     void_width = 100;

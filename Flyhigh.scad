@@ -25,9 +25,13 @@ module TipAirfoilPolygon()  {  airfoil_M18();  }
 // Invert on spar avoid hole : OK
 // Aileron circle attach : OK
 // Module sym module : OK
-// Aileron accroche and rotate ?
+// Update to new version openscad : OK
 
-// Update to new version openscad
+// Aileron accroche and rotate 
+// Better fit inside offset y
+// upper pin needs to follow real sweep angle
+// same same for mid hole
+
 // Main stage
 // Emprunte servo
 // Adjust arm size
@@ -50,15 +54,15 @@ module TipAirfoilPolygon()  {  airfoil_M18();  }
 Left_side = true;
 Right_side = false;
 
-Aileron_part = false;
+Aileron_part = true;
 Root_part = false;
-Mid_part = true;
+Mid_part = false;
 Tip_part = false;
 Motor_arm_full = false;
 Motor_arm_front = false;
 Motor_arm_back = false;
 
-Full_system = false;
+Full_system = true;
 
 //****************Wing Airfoil settings**********//
 wing_sections = 20; //60; // how many sections : more is higher resolution but higher processing
@@ -208,6 +212,7 @@ cylindre_wing_dist_sweep = -10; //2;     // Distance offset between cylinder and
 aileron_pin_hole_diameter = 1.5;  // Diameter of the pin hole fixing the aileron to wing
 aileron_pin_hole_length = 7;      // Length of the pin hole
 aileron_pin_offset_x = 25;        // Offset on x of the pin hole
+aileron_command_pin_void_length = 10;
 //******//
 
 //**************** Other settings **********//
@@ -303,15 +308,15 @@ module wing_main()
                                         {
                                             if (servo_type == 1)
                                             {
-                                                3_7gServoVoid();
+                                                Servo3_7gVoid();
                                             }
                                             else if (servo_type == 2)
                                             {
-                                                5gServoVoid();
+                                                Servo5gVoid();
                                             }
                                             else if (servo_type == 3)
                                             {
-                                                9gServoVoid();
+                                                Servo9gVoid();
                                             }
                                         }
                                     }
@@ -343,15 +348,15 @@ module wing_main()
                 {
                     if (servo_type == 1)
                     {
-                        3_7gServo();
+                        Servo3_7g();
                     }
                     else if (servo_type == 2)
                     {
-                        5gServo();
+                        Servo5g();
                     }
                     else if (servo_type == 3)
                     {
-                        9gServo();
+                        Servo9g();
                     }
                 }
             }                
@@ -439,15 +444,15 @@ module wing_main()
                                         {
                                             if (servo_type == 1)
                                             {
-                                                3_7gServoVoid();
+                                                Servo3_7gVoid();
                                             }
                                             else if (servo_type == 2)
                                             {
-                                                5gServoVoid();
+                                                Servo5gVoid();
                                             }
                                             else if (servo_type == 3)
                                             {
-                                                9gServoVoid();
+                                                Servo9gVoid();
                                             }
                                         }
                                     }
@@ -478,15 +483,15 @@ module wing_main()
                 {
                     if (servo_type == 1)
                     {
-                        3_7gServo();
+                        Servo3_7g();
                     }
                     else if (servo_type == 2)
                     {
-                        5gServo();
+                        Servo5g();
                     }
                     else if (servo_type == 3)
                     {
-                        9gServo();
+                        Servo9g();
                     }
                 }
             }                
@@ -550,15 +555,15 @@ module wing_main()
                                         {
                                             if (servo_type == 1)
                                             {
-                                                3_7gServoVoid();
+                                                Servo3_7gVoid();
                                             }
                                             else if (servo_type == 2)
                                             {
-                                                5gServoVoid();
+                                                Servo5gVoid();
                                             }
                                             else if (servo_type == 3)
                                             {
-                                                9gServoVoid();
+                                                Servo9gVoid();
                                             }
                                         }
                                     }
@@ -585,15 +590,15 @@ module wing_main()
                 {
                     if (servo_type == 1)
                     {
-                        3_7gServo();
+                        Servo3_7g();
                     }
                     else if (servo_type == 2)
                     {
-                        5gServo();
+                        Servo5g();
                     }
                     else if (servo_type == 3)
                     {
-                        9gServo();
+                        Servo9g();
                     }
                 }
             }                
@@ -657,6 +662,13 @@ else
 {
 
 
+
+
+
+
+//CreateAileronVoid();
+//CreateAileron();
+
     //**************** Aero and Gravity Center **********//
     aerodynamic_gravity_center(wing_mm, AC_CG_margin, display_surface = false, display_point = false, aero_center_plot = aerodyn_center_plot, grav_center_plot = gravity_center_plot);
     aero_grav_center = get_gravity_aero_center(AC_CG_margin);
@@ -665,10 +677,10 @@ else
     //**************** Wing **********//
     if(Full_system || Root_part || Mid_part || Tip_part || Aileron_part){
         
-        if(Left_side){
+        if(Left_side || Full_system){
             wing_main();
         }
-        if(Right_side){
+        if(Right_side || Full_system){
             mirror([0, 0, 1]) {
                 translate([0, 0, center_width])
                     wing_main();
@@ -719,18 +731,18 @@ else
         {
             if (servo_type == 1)
             {
-                3_7gServo();
-                //3_7gServoVoid();
+                Servo3_7g();
+                //Servo3_7gVoid();
             }
             else if (servo_type == 2)
             {
-                5gServo();
-                //5gServoVoid();
+                Servo5g();
+                //Servo5gVoid();
             }
             else if (servo_type == 3)
             {
-                9gServo();
-                //9gServoVoid();
+                Servo9g();
+                //Servo9gVoid();
             }
         }
     }

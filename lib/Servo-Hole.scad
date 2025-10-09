@@ -1,4 +1,4 @@
-module 3_7gServo()
+module Servo3_7g()
 {
     difference()
     {
@@ -39,7 +39,7 @@ module 3_7gServo()
         rotate([ -35, 0, 0 ]) color("blue") translate([ -10, -8, 0 ]) cube([ 50, 50, 10 ]);
     }
 }
-module 3_7gServoVoid()
+module Servo3_7gVoid()
 {
     translate([ -0.6, -0.6, -0.6 ]) union()
     {
@@ -53,7 +53,7 @@ module 3_7gServoVoid()
     }
 }
 
-module 5gServo()
+module Servo5g()
 {
     difference()
     {
@@ -94,7 +94,7 @@ module 5gServo()
         rotate([ -35, 0, 0 ]) color("blue") translate([ -10, -8, 0 ]) cube([ 50, 50, 10 ]);
     }
 }
-module 5gServoVoid()
+module Servo5gVoid()
 {
     translate([ -0.6, -0.6, -0.6 ]) union()
     {
@@ -108,7 +108,7 @@ module 5gServoVoid()
     }
 }
 
-module 9gServo()
+module Servo9g()
 {
     difference()
     {
@@ -149,7 +149,7 @@ module 9gServo()
         rotate([ -35, 0, 0 ]) color("blue") translate([ -10, -8, 0 ]) cube([ 50, 50, 10 ]);
     }
 }
-module 9gServoVoid()
+module Servo9gVoid()
 {
     translate([ -0.6, -0.6, -0.6 ]) union()
     {

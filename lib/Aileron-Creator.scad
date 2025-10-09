@@ -64,13 +64,19 @@ module CreateAileronVoid() {
             half_cylinder_between_points(pt_start_cyl, pt_end_cyl, aileron_cyl_radius, cylindre_wing_dist_nosweep);
         }        
     }
-                // Pin hole 
+            // Pin hole in the mid part
             translate([
             full_pts[len(full_pts) - 1][0] - aileron_pin_offset_x,        
             full_pts[len(full_pts) - 1][1],  
             full_pts[len(full_pts) - 1][2]  
         ])
-            cylinder(h = aileron_pin_hole_length, r = aileron_pin_hole_diameter/2, center = true);
+            rotate([ 0, sweep_angle, 0 ]) //Spar angle rotation to follow the sweep
+    cylinder(h = aileron_pin_hole_length, r = aileron_pin_hole_diameter/2, center = true);
+            
+            
+
+          
+        
 }
 
 
@@ -78,6 +84,7 @@ module CreateAileronVoid() {
 
 
 module CreateAileron() {
+
     all_pts = get_trailing_edge_points();
 
     function interpolate_pt(p1, p2, target_z) =
@@ -96,6 +103,14 @@ module CreateAileron() {
     create_aileron_thickness = aileron_thickness - aileron_reduction;
     inner_pts = [for (pt = all_pts) if (pt[2] > aileron_start_z && pt[2] < aileron_end_z) pt];
     full_pts = concat(pt_start != undef ? [pt_start] : [], inner_pts, pt_end != undef ? [pt_end] : []);
+    
+    
+        // Get the sweep angle between extrem point of ailerons
+    sweep_angle_aileron = atan((full_pts[len(full_pts) - 1][0] - full_pts[0][0])/(full_pts[len(full_pts) - 1][2] -full_pts[0][2])); 
+    
+    
+    
+    
     
     difference() {
 
@@ -124,14 +139,40 @@ module CreateAileron() {
         }
     }
 
+        union(){
             // Pin hole 
             translate([
             full_pts[len(full_pts) - 1][0] - aileron_pin_offset_x,        
             full_pts[len(full_pts) - 1][1],  
             full_pts[len(full_pts) - 1][2]  
         ])
+            rotate([ 0, sweep_angle, 0 ]) //Spar angle rotation to follow the sweep
             cylinder(h = aileron_pin_hole_length, r = aileron_pin_hole_diameter/2, center = true);
-    }
+         
+
+         
+            //Hole for the command part of ailerons 
+    translate([
+            full_pts[0][0] - 1*aileron_thickness/2,        
+            full_pts[0][1],  
+            full_pts[0][2] + motor_arm_width - aileron_command_pin_void_length/2
+        ])
+    rotate([ 0, sweep_angle_aileron, 0 ]) //Spar angle rotation to follow the sweep
+        union() {
+            translate([-7.5,0,0])
+            cylinder(h = aileron_command_pin_void_length, r = 3.75);
+
+            translate([7.5,0,0])
+            cylinder(h = aileron_command_pin_void_length, r = 2.1);
+
+
+            linear_extrude(height = aileron_command_pin_void_length)
+                polygon(points=[[7.5, -2.1], [7.5, 2.1], [-7.5, 3.75], [-7.5, -3.75]]);
+        }// End of Union  
+      
+   }//End of Union   
+                  
+    }//End of Difference
 }
 
 module half_cylinder_between_points(A, B, radius, distance_cyl_cube, extension = 20) {
