@@ -22,28 +22,19 @@ module TipAirfoilPolygon()  {  airfoil_M18();  }
 
 
 // TODO 
-// Invert on spar avoid hole : OK
-// Aileron circle attach : OK
-// Module sym module : OK
-// Update to new version openscad : OK
-
-// Aileron accroche and rotate 
-// Better fit inside offset y
-// upper pin needs to follow real sweep angle
-// same same for mid hole
-
 // Main stage
 // Emprunte servo
+// Close face supp part for aileron side for pin 
 // Adjust arm size
 
 //Later :
-// Close face and test
+// Try on Orca and add printer conf in git
 // Readme and clean and comment function with parameters description
 // Custom airfoil profil
 // Add written CG on arm or fuselage
 // Structure Grid Mode 1 Adapat ? 
 // Optimize wing grid and hole vs mass
-// Ailerons module clean 
+// Ailerons module clean and fix little bug on command pin
 
 //*******************END***************************//
 
@@ -54,20 +45,20 @@ module TipAirfoilPolygon()  {  airfoil_M18();  }
 Left_side = true;
 Right_side = false;
 
-Aileron_part = true;
+Aileron_part = false;
 Root_part = false;
-Mid_part = false;
+Mid_part = true;
 Tip_part = false;
 Motor_arm_full = false;
 Motor_arm_front = false;
 Motor_arm_back = false;
 
-Full_system = true;
+Full_system = false;
 
 //****************Wing Airfoil settings**********//
 wing_sections = 20; //60; // how many sections : more is higher resolution but higher processing
 wing_mm = 600;            // wing length in mm
-wing_root_chord_mm = 228.2; // Root chord legth in mm
+wing_root_chord_mm = 228.2; // Root chord length in mm
 wing_tip_chord_mm = 38.3;   // wing tip chord length in mm (Not relevant for elliptic wing);
 wing_center_line_perc = 70; // Percentage from the leading edge where you would like the wings center line
 wing_mode = 2; // 1=trapezoidal wing 2= elliptic wing
@@ -152,14 +143,14 @@ grid_size_factor = 2; // changes the size of the inner grid blocks
 //******//
 
 //**************** Grid mode 2 settings **********//
-spar_num = 3;     // Number of spars for grid mode 2
 spar_offset = 15; // Offset the spars from the LE/TE
-rib_num = 12; //6;      // Number of ribs
+rib_num = 13; //6;      // Number of ribs
 rib_offset = 1;   // Offset
 //******//
 
 //**************** Carbon Spar settings **********//
 debug_spar_hole = false;
+spar_num = 3;     // Number of spars for grid mode 2
 spar_length_offset = 515;
 spar_angle_fitting_coeff = 1.15; // Coeff to adjust the spar angle into the wing
 //Spar angle rotation to follow the sweep
@@ -204,15 +195,21 @@ create_aileron = true;            // Create an Aileron
 aileron_thickness = 32;           // Aileron dimension on X axis toward Leading Edge
 aileron_height = 50;              // Aileron dimension on Y axis 
 aileron_start_z = wing_root_mm;   // Aileron dimension on Z axis on Trailing Edge
-aileron_end_z = wing_root_mm + wing_mid_mm;              // Aileron dimension on Z axis on Trailing Edge
-aileron_cyl_radius = 6; //15;          // Aileron void cylinder radius 
+aileron_end_z = wing_root_mm + wing_mid_mm; // Aileron dimension on Z axis on Trailing Edge
+aileron_cyl_radius = 6;  // Aileron void cylinder radius 
 aileron_reduction = 1;            // Aileron size reduction to fit in the ailerons void with ease 
 cylindre_wing_dist_nosweep = 1;   // Distance offset between cylinder and cube to avoid discontinuities in cut
-cylindre_wing_dist_sweep = -10; //2;     // Distance offset between cylinder and cube to avoid discontinuities in cut
+cylindre_wing_dist_sweep = -10; // Distance offset between cylinder and cube to avoid discontinuities in cut
 aileron_pin_hole_diameter = 1.5;  // Diameter of the pin hole fixing the aileron to wing
 aileron_pin_hole_length = 7;      // Length of the pin hole
-aileron_pin_offset_x = 25;        // Offset on x of the pin hole
 aileron_command_pin_void_length = 10;
+aileron_command_pin_width = 7.5;
+aileron_command_pin_s_radius = 1.7;
+aileron_command_pin_b_radius = 3.15;
+aileron_command_pin_x_offset = 3;
+aileron_dist_LE_command_center = aileron_thickness - aileron_command_pin_width - aileron_command_pin_b_radius - aileron_command_pin_x_offset;
+aileron_dist_LE_pin_center = aileron_thickness;// - aileron_command_pin_b_radius - aileron_command_pin_x_offset;
+
 //******//
 
 //**************** Other settings **********//
@@ -645,6 +642,7 @@ module motor_arm_main(aero_grav_center){
 }
 
  
+//CreateAileron();
     
 if (wing_sections * 0.2 < slice_transisions)
 {
@@ -663,11 +661,6 @@ else
 
 
 
-
-
-
-//CreateAileronVoid();
-//CreateAileron();
 
     //**************** Aero and Gravity Center **********//
     aerodynamic_gravity_center(wing_mm, AC_CG_margin, display_surface = false, display_point = false, aero_center_plot = aerodyn_center_plot, grav_center_plot = gravity_center_plot);
@@ -747,3 +740,4 @@ else
         }
     }
 }
+

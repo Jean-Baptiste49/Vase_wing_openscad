@@ -36,6 +36,12 @@ module CreateAileronVoid() {
         inner_pts,
         pt_end != undef ? [pt_end] : []
     );
+    
+    
+    // Get the sweep angle between extrem point of ailerons
+    sweep_angle_aileron = atan((full_pts[len(full_pts) - 1][0] - full_pts[0][0])/(full_pts[len(full_pts) - 1][2] -full_pts[0][2])); 
+    
+    
 
     if (len(full_pts) >= 2) {
         for (i = [0 : len(full_pts) - 2]) {
@@ -64,15 +70,24 @@ module CreateAileronVoid() {
             half_cylinder_between_points(pt_start_cyl, pt_end_cyl, aileron_cyl_radius, cylindre_wing_dist_nosweep);
         }        
     }
-            // Pin hole in the mid part
+           
+            
+            // Pin hole 
             translate([
-            full_pts[len(full_pts) - 1][0] - aileron_pin_offset_x,        
-            full_pts[len(full_pts) - 1][1],  
+            full_pts[len(full_pts) - 1][0] - aileron_dist_LE_pin_center,        
+            full_pts[len(full_pts) - 1][1] + y_offset_aileron_to_wing/2,  
             full_pts[len(full_pts) - 1][2]  
         ])
-            rotate([ 0, sweep_angle, 0 ]) //Spar angle rotation to follow the sweep
-    cylinder(h = aileron_pin_hole_length, r = aileron_pin_hole_diameter/2, center = true);
+            rotate([ 0, sweep_angle_aileron, 0 ]){ //Spar angle rotation to follow the sweep
+
+            cylinder(h = aileron_pin_hole_length, r = aileron_pin_hole_diameter/2, center = true);
             
+            //cube use for access from extern layer to pin hole in vase mode
+            //We use a side to join pin either extern mid and aileron layer cf rotate 90
+            rotate([ 0, 0, 90 ])
+                translate([ 0, 0, -aileron_pin_hole_length/2 ])
+                    cube([ aileron_thickness, slice_gap_width, aileron_pin_hole_length ]);
+            }
             
 
           
@@ -84,6 +99,8 @@ module CreateAileronVoid() {
 
 
 module CreateAileron() {
+    
+    
 
     all_pts = get_trailing_edge_points();
 
@@ -120,7 +137,7 @@ module CreateAileron() {
 
             hull() {
                 translate([pt1[0] - create_aileron_thickness-x_offset_aileron_cylinder_to_cube, pt1[1] - aileron_height / 2, pt1[2]])
-                    cube([x_offset_aileron_cylinder_to_cube + create_aileron_thickness, aileron_height, 1], center = false);
+                    cube([x_offset_aileron_cylinder_to_cube + create_aileron_thickness, aileron_height, 0.1], center = false);
                 translate([pt2[0] - create_aileron_thickness-x_offset_aileron_cylinder_to_cube, pt2[1] - aileron_height / 2, pt2[2]-1]) // We withdraw 1 to stay in right dimension as the cube of z =1  is the extern limit 
                     cube([x_offset_aileron_cylinder_to_cube + create_aileron_thickness, aileron_height, 1], center = false); 
             }
@@ -142,37 +159,48 @@ module CreateAileron() {
         union(){
             // Pin hole 
             translate([
-            full_pts[len(full_pts) - 1][0] - aileron_pin_offset_x,        
-            full_pts[len(full_pts) - 1][1],  
+            full_pts[len(full_pts) - 1][0] - aileron_dist_LE_pin_center,        
+            full_pts[len(full_pts) - 1][1] + y_offset_aileron_to_wing/2,  
             full_pts[len(full_pts) - 1][2]  
         ])
-            rotate([ 0, sweep_angle, 0 ]) //Spar angle rotation to follow the sweep
-            cylinder(h = aileron_pin_hole_length, r = aileron_pin_hole_diameter/2, center = true);
+            rotate([ 0, sweep_angle_aileron, 0 ]){ //Spar angle rotation to follow the sweep
+                cylinder(h = aileron_pin_hole_length, r = aileron_pin_hole_diameter/2, center = true);
+                //cube use for access from extern layer to pin hole in vase mode
+                //We use a side to join pin either extern mid and aileron layer cf rotate 90
+                rotate([ 0, 0, 60 ])
+                    translate([ 0, 0, -aileron_pin_hole_length/2 ])
+                        cube([ aileron_thickness, slice_gap_width, aileron_pin_hole_length ]);
+            }
          
 
          
             //Hole for the command part of ailerons 
     translate([
-            full_pts[0][0] - 1*aileron_thickness/2,        
-            full_pts[0][1],  
+            full_pts[0][0] - aileron_dist_LE_command_center,        
+            full_pts[0][1] + y_offset_aileron_to_wing/2,  
             full_pts[0][2] + motor_arm_width - aileron_command_pin_void_length/2
         ])
     rotate([ 0, sweep_angle_aileron, 0 ]) //Spar angle rotation to follow the sweep
         union() {
             translate([-7.5,0,0])
-            cylinder(h = aileron_command_pin_void_length, r = 3.75);
+            cylinder(h = aileron_command_pin_void_length, r = aileron_command_pin_b_radius);
 
             translate([7.5,0,0])
-            cylinder(h = aileron_command_pin_void_length, r = 2.1);
+            cylinder(h = aileron_command_pin_void_length, r = aileron_command_pin_s_radius);
 
 
             linear_extrude(height = aileron_command_pin_void_length)
-                polygon(points=[[7.5, -2.1], [7.5, 2.1], [-7.5, 3.75], [-7.5, -3.75]]);
+                polygon(points=[[aileron_command_pin_width, -aileron_command_pin_s_radius], [aileron_command_pin_width, aileron_command_pin_s_radius], [-aileron_command_pin_width, aileron_command_pin_b_radius], [-aileron_command_pin_width, -aileron_command_pin_b_radius]]);
+                
+            cube([ aileron_thickness, slice_gap_width, aileron_command_pin_void_length ]);    
         }// End of Union  
       
    }//End of Union   
                   
     }//End of Difference
+
+    
+
 }
 
 module half_cylinder_between_points(A, B, radius, distance_cyl_cube, extension = 20) {
