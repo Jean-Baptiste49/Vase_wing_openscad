@@ -48,3 +48,13 @@ module CreateSparVoid(sweep_ang, hole_offset, hole_perc, hole_size, hole_length,
                     cube([ hole_size + hole_void_clearance, void_width, hole_length ]);
     }
 }
+
+module CreateSparHole_center(sweep_ang, hole_offset, hole_perc, hole_size, hole_length, wing_root_chord, ct_width)
+{
+    translate([ 0, hole_offset, 0 ])    
+        color("red") translate([ hole_perc / 100 * wing_root_chord, 0, 0 ])
+            rotate([ 0, sweep_ang, 0 ]) //Spar angle rotation to follow the sweep    
+                translate([ 0, 0, - ct_width/2 ])    
+                    cylinder(h = hole_length, r = hole_size / 2);
+
+}

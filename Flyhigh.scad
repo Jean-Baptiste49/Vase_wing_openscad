@@ -22,9 +22,13 @@ module TipAirfoilPolygon()  {  airfoil_M18();  }
 
 
 // TODO 
-// Main stage
+// Main stage :
+// Longerons insertiin main stage + long
+// Longerons axe x ?
+// Faire surépaisseur main stage longerons
+
 // Emprunte servo
-// Close face supp part for aileron side for pin 
+// Close face supp part for aileron side for pin ==> issue with pin mid to be solved
 // Adjust arm size
 
 //Later :
@@ -47,11 +51,12 @@ Right_side = false;
 
 Aileron_part = false;
 Root_part = false;
-Mid_part = true;
+Mid_part = false;
 Tip_part = false;
 Motor_arm_full = false;
 Motor_arm_front = false;
 Motor_arm_back = false;
+Center_part = true;
 
 Full_system = false;
 
@@ -86,6 +91,8 @@ gravity_center_plot = false; //Green
 //******//
 //**************** Fuselage and center part **********//
 center_width = 150;
+center_length = 250;
+center_height = 17;
 //******//
 
 //****************Wing Washout settings**********//
@@ -641,6 +648,59 @@ module motor_arm_main(aero_grav_center){
     
 }
 
+
+
+
+
+
+module center_part(aero_grav_center, ct_width, ct_length, ct_height){    
+
+
+ 
+size = [ct_length, ct_width];    // Square size (X, Y)
+radius = 3;         // Radius of rounded corners
+
+translate([ct_length/2,2*ct_height/3,-ct_width/2])
+    rotate([90,0,0])
+        linear_extrude(ct_height)
+            offset(r=radius)
+                offset(delta=-radius)
+                    square([ct_length, ct_width], center=true);
+            
+           
+}
+
+
+module center_part_main(aero_grav_center, ct_width, ct_length, ct_height){  
+
+
+    if(Center_part){
+    
+        difference(){    
+            center_part(aero_grav_center, ct_width, ct_length, ct_height);
+  
+            union(){
+            CreateSparHole(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, slice_gap_width, spar_flip_side_1);
+                        CreateSparHole_center(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, ct_width);
+                        CreateSparHole_center(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, ct_width);
+                        CreateSparHole_center(0, spar_hole_offset_3, spar_hole_perc_3, spar_hole_size_3, spar_hole_length_3, wing_root_chord_mm, ct_width);
+                        mirror([0, 0, 1]) {
+                            translate([0, 0, center_width]){
+            CreateSparHole(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, slice_gap_width, spar_flip_side_1);
+                        CreateSparHole_center(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, ct_width);
+                        CreateSparHole_center(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, ct_width);
+                        CreateSparHole_center(0, spar_hole_offset_3, spar_hole_perc_3, spar_hole_size_3, spar_hole_length_3, wing_root_chord_mm, ct_width);
+                            } // End of translate
+                        } // End of Mirror
+                        
+            }//End of Union
+        }//End of difference
+    
+    
+    }//End if Center_part
+}
+
+
  
 //CreateAileron();
     
@@ -694,6 +754,29 @@ else
     }//End if Full System
 
     
+    //**************** Center part **********//
+    center_part_main(aero_grav_center, center_width, center_length, center_height);
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
     
     if(debug_leading_trailing_edge)
