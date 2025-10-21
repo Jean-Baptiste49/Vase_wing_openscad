@@ -18,10 +18,9 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 
 
 // TODO 
-// Emprunte servo
+// Tip redraw and more ribs
 // Adjust arm size
-// Add written CG on arm or fuselage
-
+// arm funciton middle spar
 
 
 // Main stage :
@@ -29,7 +28,10 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 // Longerons axe x ?
 // Faire surépaisseur main stage longerons
 
+// Add written CG on arm or fuselage
 
+//Test Impression :
+// Emprunte servo fit 
 
 //Later :
 // Issue with pin mid and ribs intersection
@@ -52,7 +54,7 @@ Left_side = true;
 Right_side = false;
 
 Aileron_part = false;
-Root_part = true;
+Root_part = false;
 Mid_part = false;
 Tip_part = false;
 Mid_Tip_part = false;
@@ -61,7 +63,7 @@ Motor_arm_front = false;
 Motor_arm_back = false;
 Center_part = false;
 
-Full_system = false;
+Full_system = true;
 
 //****************Wing Airfoil settings**********//
 wing_sections = 20; // how many sections : more is higher resolution but higher processing
@@ -76,7 +78,7 @@ slice_transisions = 0; // This is the number of slices that will be a blend of a
 //**************** Motor arm **********//
 ellipse_maj_ax = 9;        // ellipse's major axis (rayon z)
 ellipse_min_ax = 13;        // ellipse's minor axis (rayon y)
-motor_arm_length = 280;        // Tube length z
+motor_arm_length = 250;        // Tube length z
 motor_arm_height = 19;      // Height of motor arm
 motor_arm_tilt_angle  = 20; // Tilt angle of motor arm
 motor_arm_screw_fit_offset = 2; // Offset to adjust screw position after rotation
@@ -86,7 +88,7 @@ dummy_motor = false;
 // Total must do wing_mm
 motor_arm_width = 2*ellipse_maj_ax;
 wing_root_mm = 215;
-wing_mid_mm = 200;
+wing_mid_mm = 245;
 wing_tip_mm = wing_mm - wing_root_mm - wing_mid_mm - motor_arm_width;
 echo("Wing_tip_mm = ", wing_tip_mm);
 AC_CG_margin = 10; //Margin between mean aerodynamic center and gravity center in pourcentage
@@ -153,24 +155,24 @@ rib_offset = 3;   // Offset
 //**************** Carbon Spar settings **********//
 debug_spar_hole = false;
 spar_num = 3;     // Number of spars for grid mode 2
-spar_length_offset_1 = wing_mm - 8*wing_tip_mm/10;
-spar_length_offset_2 = wing_mm - 8.7*wing_tip_mm/10;
+spar_length_offset_1 = wing_mm - 50*wing_tip_mm/10;
+spar_length_offset_2 = wing_mm - 22*wing_tip_mm/10;
 spar_angle_fitting_coeff = 1.15; // Coeff to adjust the spar angle into the wing
 //Spar angle rotation to follow the sweep
 sweep_angle = use_custom_lead_edge_sweep ? atan((spar_angle_fitting_coeff * lead_edge_sweep[len(lead_edge_sweep) - 1][1]) / lead_edge_sweep[len(lead_edge_sweep) - 1][0]) : 0;
 
 spar_hole = true;                // Add a spar hole into the wing
-spar_hole_perc = 28;//25;             // Percentage from leading edge
+spar_hole_perc = 15; //28;//25;             // Percentage from leading edge
 spar_hole_size = 5;              // Size of the spar hole
 spar_hole_length = use_custom_lead_edge_sweep ? spar_length_offset_1/cos(sweep_angle) : spar_length_offset_1; // length of the spar in mm
 spar_hole_offset = 1.8;            // Adjust where the spar is located
 spar_hole_void_clearance = 1; // Clearance for the spar to grid interface(at least double extrusion width is usually needed)
 spar_flip_side_1 = false; // use to offset the spar attached on a side of the wing to the other
 // Second spar
-spar_hole_perc_2 = 38;//45;             // Percentage from leading edge
+spar_hole_perc_2 = 37;//45;             // Percentage from leading edge
 spar_hole_size_2 = 5;              // Size of the spar hole
 spar_hole_length_2= use_custom_lead_edge_sweep ? spar_length_offset_2/cos(sweep_angle) : spar_length_offset_2; // length of the spar in mm
-spar_hole_offset_2 = 0.8;            // Adjust where the spar is located
+spar_hole_offset_2 = 1.8;            // Adjust where the spar is located
 spar_hole_void_clearance_2 = 1; 
 spar_flip_side_2 = false; // use to offset the spar attached on a side of the wing to the other
 // third spar
@@ -183,16 +185,27 @@ spar_flip_side_3 = true; // use to offset the spar attached on a side of the win
 sweep_angle_3rd_spar = 2.0*sweep_angle/3;
 //******//
 
-//**************** Servo settings **********//
+
+
+
+//**************** Servo settings **********//  
+servo_dimension_perso = [24,9,27]; 
+all_pts = get_trailing_edge_points();
+pt_start = find_interpolated_point(wing_root_mm - 0, all_pts);
+
 create_servo_void = true; // It is important to check that your servo placement doesnt create any artifacts(You can
 // comment out the CreateWing() function to assist)
-servo_type = 1;           // 1=3.7g 2=5g 3=9g
-servo_dist_root_mm = 100; // servo placement from root
-servo_dist_le_mm = 64;    // servo placement from the leading edge
-servo_rotate_z_deg = -7;  // degrees to rotate on z axis
-servo_dist_depth_mm = 10; // offset the servo into or out of the wing till you dont see red
-servo_show = true;       // for debugging only. Show the servo for easier placement
+servo_type = 4;           // 1=3.7g 2=5g 3=9g 4=perso
+servo_dist_root_mm = wing_root_mm-6; // servo placement from root
+servo_dist_le_mm = pt_start[0]-40;    // servo placement from the leading edge
+servo_rotate_z_deg = -0;  // degrees to rotate on z axis
+servo_dist_depth_mm = -0; // offset the servo into or out of the wing till you dont see red
+servo_show = false;       // for debugging only. Show the servo for easier placement
 //******//
+
+
+
+
 
 //**************** Aileron settings **********//
 create_aileron = true;            // Create an Aileron
@@ -201,7 +214,7 @@ aileron_height = 50;              // Aileron dimension on Y axis
 aileron_pin_hole_diameter = 1.5;  // Diameter of the pin hole fixing the aileron to wing
 aileron_pin_hole_length = 7;      // Length of the pin hole
 aileron_start_z = wing_root_mm;   // Aileron dimension on Z axis on Trailing Edge
-aileron_end_z = wing_root_mm + wing_mid_mm + motor_arm_width - aileron_pin_hole_length; // Aileron dimension on Z axis on Trailing Edge
+aileron_end_z = wing_root_mm + wing_mid_mm + motor_arm_width - 3*aileron_pin_hole_length; // Aileron dimension on Z axis on Trailing Edge
 aileron_cyl_radius = 6;  // Aileron void cylinder radius 
 aileron_reduction = 1;            // Aileron size reduction to fit in the ailerons void with ease 
 cylindre_wing_dist_nosweep = 1;   // Distance offset between cylinder and cube to avoid discontinuities in cut
@@ -320,6 +333,10 @@ module wing_main()
                                             {
                                                 Servo9gVoid();
                                             }
+                                            else if (servo_type == 4)
+                                            {
+                                                Servo4Void();
+                                            }
                                         }
                                     }
                                 }
@@ -360,6 +377,10 @@ module wing_main()
                     {
                         Servo9g();
                     }
+                    else if (servo_type == 4)
+                    {
+                        Servo4();
+                    }                    
                 }
             }                
         }
@@ -460,6 +481,10 @@ module wing_main()
                                             {
                                                 Servo9gVoid();
                                             }
+                                            else if (servo_type == 4)
+                                            {
+                                                Servo4Void();
+                                            }
                                         }
                                     }
                                 }
@@ -499,6 +524,10 @@ module wing_main()
                     {
                         Servo9g();
                     }
+                    else if (servo_type == 4)
+                    {
+                        Servo4();
+                    }                    
                 }
             }                
         }
@@ -571,6 +600,10 @@ module wing_main()
                                             {
                                                 Servo9gVoid();
                                             }
+                                            else if (servo_type == 4)
+                                            {
+                                                Servo4Void();
+                                            }
                                         }
                                     }
                                 }
@@ -606,6 +639,10 @@ module wing_main()
                     {
                         Servo9g();
                     }
+                    else if (servo_type == 4)
+                    {
+                        Servo4();
+                    }                    
                 }
             }                
         }
@@ -644,6 +681,35 @@ module motor_arm_main(aero_grav_center){
                         CreateSparHole(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, slice_gap_width, spar_flip_side_1);
                         CreateSparHole(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, slice_gap_width, spar_flip_side_2);
                         CreateSparHole(sweep_angle_3rd_spar, spar_hole_offset_3, spar_hole_perc_3, spar_hole_size_3, spar_hole_length_3, wing_root_chord_mm, slice_gap_width, spar_flip_side_3);
+            
+
+
+        if (create_servo_void)
+                    {
+                        rotate([ 0, 0, servo_rotate_z_deg ])
+                            translate([ servo_dist_le_mm, servo_dist_depth_mm, servo_dist_root_mm ])
+                        {
+                            if (servo_type == 1)
+                            {
+                                Servo3_7g();
+                            }
+                            else if (servo_type == 2)
+                            {
+                                Servo5g();
+                            }
+                            else if (servo_type == 3)
+                            {
+                                Servo9g();
+                            }
+                            else if (servo_type == 4)
+                            {
+                                Servo4();
+                            }                    
+                        }
+                    }            
+                        
+                        
+                        
             }
         }//End of difference
     }//End of Motor_arm_left
@@ -759,27 +825,8 @@ else
     
     //**************** Center part **********//
     center_part_main(aero_grav_center, center_width, center_length, center_height);
+    //Servo4();
     
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     
     
     if(debug_leading_trailing_edge)
@@ -811,32 +858,21 @@ else
             if (servo_type == 1)
             {
                 Servo3_7g();
-                //Servo3_7gVoid();
             }
             else if (servo_type == 2)
             {
                 Servo5g();
-                //Servo5gVoid();
             }
             else if (servo_type == 3)
             {
                 Servo9g();
-                //Servo9gVoid();
+            }
+            else if (servo_type == 4)
+            {
+                Servo4();
             }
         }
     }
 }
 
 
-
-
-    function interpolate_pt(p1, p2, target_z) =
-        let (dz = p2[2] - p1[2], t = (target_z - p1[2]) / dz)
-        [ p1[0] + t * (p2[0] - p1[0]), p1[1] + t * (p2[1] - p1[1]), target_z ];
-
-    function find_interpolated_point(target_z, pts) =
-        let (
-            pairs = [for (i = [0 : len(pts) - 2]) [pts[i], pts[i+1]]],
-            valid = [ for (pr = pairs) if ((pr[0][2] <= target_z && target_z <= pr[1][2]) || (pr[1][2] <= target_z && target_z <= pr[0][2])) pr ]
-        )
-        (len(valid) > 0) ? interpolate_pt(valid[0][0], valid[0][1], target_z) : undef;

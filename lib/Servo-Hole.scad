@@ -1,3 +1,32 @@
+    function interpolate_pt(p1, p2, target_z) =
+        let (
+            dz = p2[2] - p1[2],
+            t = (target_z - p1[2]) / dz
+        )
+        [
+            p1[0] + t * (p2[0] - p1[0]),
+            p1[1] + t * (p2[1] - p1[1]),
+            target_z
+        ];
+
+    function find_interpolated_point(target_z, pts) =
+        let (
+            pairs = [for (i = [0 : len(pts) - 2]) [pts[i], pts[i+1]]],
+            valid = [
+                for (pair = pairs)
+                    if (
+                        (pair[0][2] <= target_z && target_z <= pair[1][2]) ||
+                        (pair[1][2] <= target_z && target_z <= pair[0][2])
+                    ) pair
+            ]
+        )
+        (len(valid) > 0) ? interpolate_pt(valid[0][0], valid[0][1], target_z) : undef;
+
+
+
+
+
+
 module Servo3_7g()
 {
     difference()
@@ -161,4 +190,60 @@ module Servo9gVoid()
         translate([ -6, 9, 6 ]) color("blue") cube([ 38.2, 30, 15 ]);
         translate([ 10.5, 9, 24 ]) color("blue") cube([ 16.2, 30, 9.2 ]);
     }
+}
+
+
+module Servo4 () 
+{   
+    all_pts = get_trailing_edge_points();
+    
+    pt_start = find_interpolated_point(aileron_start_z, all_pts);
+    pt_end   = find_interpolated_point(aileron_end_z, all_pts);
+    inner_pts = [for (pt = all_pts) if (pt[2] > aileron_start_z && pt[2] < aileron_end_z) pt];
+    full_pts = concat(
+        pt_start != undef ? [pt_start] : [],
+        inner_pts,
+        pt_end != undef ? [pt_end] : []
+    );
+    
+    // Get the sweep angle between extrem point of ailerons
+    sweep_ang = atan((full_pts[len(full_pts) - 1][0] - full_pts[0][0])/(full_pts[len(full_pts) - 1][2] -full_pts[0][2])); 
+    
+    rotate([ 0, sweep_ang, 0 ]) //Spar angle rotation to follow the sweep
+        union(){
+        cube([ servo_dimension_perso[0],servo_dimension_perso[1],servo_dimension_perso[2]]);
+        //Triangle to complete the void
+  
+        translate([ 0, servo_dimension_perso[1], servo_dimension_perso[2] ])
+            rotate([90, 0, 0])
+                linear_extrude(height = servo_dimension_perso[1])
+                    polygon([
+                    [0, 0],       // Point A
+                    [servo_dimension_perso[0], 0],      // Point B
+                    [servo_dimension_perso[0], servo_dimension_perso[0]*tan(sweep_ang)]      // Point C
+                    ]);   
+        
+        }
+}
+
+module Servo4Void () 
+{
+    all_pts = get_trailing_edge_points();
+ 
+    pt_start = find_interpolated_point(aileron_start_z, all_pts);
+    pt_end   = find_interpolated_point(aileron_end_z, all_pts);
+    inner_pts = [for (pt = all_pts) if (pt[2] > aileron_start_z && pt[2] < aileron_end_z) pt];
+    full_pts = concat(
+        pt_start != undef ? [pt_start] : [],
+        inner_pts,
+        pt_end != undef ? [pt_end] : []
+    );
+    
+    // Get the sweep angle between extrem point of ailerons
+    sweep_ang = atan((full_pts[len(full_pts) - 1][0] - full_pts[0][0])/(full_pts[len(full_pts) - 1][2] -full_pts[0][2])); 
+
+    
+    
+    rotate([ 0, sweep_ang, 0 ]) //Spar angle rotation to follow the sweep
+        cube([ servo_dimension_perso[0],servo_dimension_perso[1],servo_dimension_perso[2]]);
 }

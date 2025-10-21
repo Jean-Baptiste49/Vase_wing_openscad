@@ -75,7 +75,7 @@ module CreateAileronVoid() {
             translate([
             full_pts[len(full_pts) - 1][0] - aileron_dist_LE_pin_center,        
             full_pts[len(full_pts) - 1][1] + y_offset_aileron_to_wing/2,  
-            full_pts[len(full_pts) - 1][2]  
+            full_pts[len(full_pts) - 1][2] - 2*aileron_pin_hole_length 
         ])
             rotate([ 0, sweep_angle_aileron, 0 ]){ //Spar angle rotation to follow the sweep
 
