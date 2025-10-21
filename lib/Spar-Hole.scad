@@ -13,7 +13,8 @@ module CreateSparHole(sweep_ang, hole_offset, hole_perc, hole_size, hole_length,
                 translate([ 0, hole_size / 2 - (slice_gap/2), 0 ]) 
                     rotate([ 0, sweep_ang, 0 ]) //Spar angle rotation to follow the sweep 
                         rotate([ 0, 0, flip_side ]) //rotation to flip from on side to the other with 
-                            cube([ slice_gap, 50, hole_length + 10 ]);
+                            //cube([ slice_gap, 50, hole_length + 10 ]);
+                            cube([ slice_gap, 50, hole_length +1 ]);
 
             color("green")
                 translate([ -5, hole_size / 2, hole_length ]) rotate([ 35, 0, 0 ]) 

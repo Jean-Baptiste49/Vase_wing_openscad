@@ -1,4 +1,3 @@
-y_offset_aileron_to_wing = 1.0;
 x_offset_aileron_cylinder_to_cube = 2.0; //As the hull an discontinuite assembling of cube, there is a tiny between the cylinder connecting the wing and the rest of the aileron. You can adjust the filling of this gap with this offset
 
 module CreateAileronVoid() {
@@ -191,8 +190,17 @@ module CreateAileron() {
 
             linear_extrude(height = aileron_command_pin_void_length)
                 polygon(points=[[aileron_command_pin_width, -aileron_command_pin_s_radius], [aileron_command_pin_width, aileron_command_pin_s_radius], [-aileron_command_pin_width, aileron_command_pin_b_radius], [-aileron_command_pin_width, -aileron_command_pin_b_radius]]);
+             
+           /* translate([-aileron_thickness,0,0])
+                cube([ aileron_thickness, slice_gap_width, 2*aileron_command_pin_void_length ]);   */
+            translate([-aileron_dist_LE_command_center/4,-aileron_thickness,0])
+            rotate([0,0,90])
+                cube([ aileron_thickness, slice_gap_width, aileron_command_pin_void_length ]); 
                 
-            cube([ aileron_thickness, slice_gap_width, aileron_command_pin_void_length ]);    
+     /*       translate([aileron_dist_LE_command_center/4,0,0])
+            rotate([0,0,90])
+                cube([ aileron_thickness, slice_gap_width, aileron_command_pin_void_length ]);   */               
+                
         }// End of Union  
       
    }//End of Union   
@@ -236,8 +244,8 @@ module half_cylinder_between_points(A, B, radius, distance_cyl_cube, extension =
                     cylinder(h = h_ext, r = radius, center = false);
 
                     // Cut to get half cylinder
-                    translate([0, -2 * radius, 0])
-                        cube([radius, 4 * radius, h_ext]);
+                    //translate([0, -2 * radius, 0])
+                    //    cube([radius, 4 * radius, h_ext]);
                 }
 
     // We cut the extremities of cylinder to get something fitting to ailerons on edge
@@ -280,8 +288,8 @@ module half_cylinder_between_points_sweep(A, B, radius, distance_cyl_cube, exten
                     cylinder(h = h_ext, r = radius, center = false);
 
                     // Cut to get half cylinder
-                    translate([0, -2 * radius, 0])
-                        cube([radius, 4 * radius, h_ext]);
+                    //translate([0, -2 * radius, 0])
+                    //    cube([radius, 4 * radius, h_ext]);
                 }
 
     // We cut the extremities of cylinder to get something fitting to ailerons on edge
