@@ -1,4 +1,4 @@
-module motor_arm(a_ellipse, b_ellipse, arm_length, motor_height, arm_tilt_angle, arm_screw_fit_offset, aero_grav_center, back = false, front = false, full = true) {
+module motor_arm(a_ellipse, b_ellipse, arm_length_front, arm_length_back, motor_height, arm_tilt_angle, arm_screw_fit_offset, aero_grav_center, grav_center_offset, back = false, front = false, full = true) {
    
     
     //**************** Parameters **********//
@@ -17,7 +17,8 @@ module motor_arm(a_ellipse, b_ellipse, arm_length, motor_height, arm_tilt_angle,
     x_pos_screw_long = cos(45) * (motor_footprint_long );
     y_pos_screw_long = sin(45) * (motor_footprint_long );
     x_pos_screw_short = cos(45) * (motor_footprint_short );
-    y_pos_screw_short = sin(45) * (motor_footprint_short );    
+    y_pos_screw_short = sin(45) * (motor_footprint_short );
+    motor_x_pos = aero_grav_center[1] + grav_center_offset;
     
     
     //Echo lock parameters
@@ -33,6 +34,7 @@ module motor_arm(a_ellipse, b_ellipse, arm_length, motor_height, arm_tilt_angle,
     lock_length_2_start = 0.57 *width;
     lock_length_2_stop = 0.8 *width;
     lock_length_2_height = lock_length_2_stop - lock_length_2_start;
+    
     //**************** End Parameters **********//
     
     
@@ -44,33 +46,33 @@ module motor_arm(a_ellipse, b_ellipse, arm_length, motor_height, arm_tilt_angle,
     {  
         union(){
     // Draw the arm
-    translate([ aero_grav_center[1] + arm_length, y_offset, wing_root_mm+a_ellipse])
+    translate([ motor_x_pos + arm_length_back, y_offset, wing_root_mm+a_ellipse])
         rotate([ 0, -90, 0 ])
             
-            linear_extrude(height = 2*arm_length)
+            linear_extrude(height = arm_length_front+arm_length_back)
                 scale([1, b_ellipse/a_ellipse])
                     circle(r = a_ellipse, $fn=100); 
             
     //**************** Front arm **********//
     //Draw connexion arm to motor support
-    translate([ aero_grav_center[1] - arm_length, y_offset, wing_root_mm+a_ellipse])
+    translate([ motor_x_pos - arm_length_front, y_offset, wing_root_mm+a_ellipse])
         scale([1, b_ellipse/a_ellipse])
            sphere(a_ellipse, $fn=100 );
 
     // Draw the motor support
-    translate([ aero_grav_center[1] - arm_length, y_offset, wing_root_mm+a_ellipse])
+    translate([ motor_x_pos - arm_length_front, y_offset, wing_root_mm+a_ellipse])
         rotate([ 0, 90, 90 ])
             linear_extrude(height = motor_height+b_ellipse, scale = motor_support_scale)
                 circle(r = a_ellipse, $fn=100);
 
     //**************** Back arm **********//
     //Draw connexion arm to motor support
-    translate([ aero_grav_center[1] + arm_length, y_offset, wing_root_mm+a_ellipse])
+    translate([ motor_x_pos + arm_length_back, y_offset, wing_root_mm+a_ellipse])
         scale([1, b_ellipse/a_ellipse])
            sphere(a_ellipse, $fn=100 );
 
     // Draw the motor support
-    translate([ aero_grav_center[1] + arm_length, y_offset, wing_root_mm+a_ellipse])
+    translate([ motor_x_pos + arm_length_back, y_offset, wing_root_mm+a_ellipse])
         rotate([ 0, 90, 90 ])
             linear_extrude(height = motor_height+b_ellipse, scale = motor_support_scale)
                 circle(r = a_ellipse, $fn=100);
@@ -81,7 +83,7 @@ module motor_arm(a_ellipse, b_ellipse, arm_length, motor_height, arm_tilt_angle,
     union(){    
     //**************** Front arm **********//   
     //Draw trim plan
-    translate([ aero_grav_center[1] - arm_length -trim_plan_dim/2, y_offset + b_ellipse + motor_height , wing_root_mm+a_ellipse - trim_plan_dim/2 ]) {
+    translate([ motor_x_pos - arm_length_front -trim_plan_dim/2, y_offset + b_ellipse + motor_height , wing_root_mm+a_ellipse - trim_plan_dim/2 ]) {
             rotate([ arm_tilt_angle, 0, 0]) {
         
         cube([ trim_plan_dim, trim_plan_dim, trim_plan_dim ]);
@@ -139,7 +141,7 @@ module motor_arm(a_ellipse, b_ellipse, arm_length, motor_height, arm_tilt_angle,
 
     //**************** Back arm **********//    
     //Draw trim plan
-    translate([ aero_grav_center[1] + arm_length -trim_plan_dim/2, y_offset + b_ellipse + motor_height , wing_root_mm+a_ellipse - trim_plan_dim/2 ]) {
+    translate([ motor_x_pos + arm_length_back -trim_plan_dim/2, y_offset + b_ellipse + motor_height , wing_root_mm+a_ellipse - trim_plan_dim/2 ]) {
             rotate([ arm_tilt_angle, 0, 0]) {
         
         cube([ trim_plan_dim, trim_plan_dim, trim_plan_dim ]);
@@ -201,7 +203,7 @@ module motor_arm(a_ellipse, b_ellipse, arm_length, motor_height, arm_tilt_angle,
     }//End of difference       
 //
         if(dummy_motor){
-    translate([ aero_grav_center[1] + arm_length, y_offset + motor_height, wing_root_mm+a_ellipse])
+    translate([ motor_x_pos + arm_length_back, y_offset + motor_height, wing_root_mm+a_ellipse])
         rotate([ 0, 90 - arm_tilt_angle, 90 ])
             union(){
             color("red")
@@ -214,7 +216,7 @@ module motor_arm(a_ellipse, b_ellipse, arm_length, motor_height, arm_tilt_angle,
                         circle(r = dummy_helix_radius, $fn=100);   
             }
 
-    translate([ aero_grav_center[1] - arm_length, y_offset + motor_height, wing_root_mm+a_ellipse])
+    translate([ motor_x_pos - arm_length_front, y_offset + motor_height, wing_root_mm+a_ellipse])
         rotate([ 0, 90 - arm_tilt_angle, 90 ])
             union(){
             color("red")
@@ -238,11 +240,11 @@ module motor_arm(a_ellipse, b_ellipse, arm_length, motor_height, arm_tilt_angle,
     //**************** Difference part to cut the arm in 2 pieces **********//
     if(front){
         union(){
-            translate([ aero_grav_center[1] , -motor_arm_length, wing_root_mm - motor_arm_length])
-                cube([ 2*motor_arm_length, 2*motor_arm_length, 2*motor_arm_length ]);
+            translate([ motor_x_pos , -arm_length_front, wing_root_mm - arm_length_front])
+                cube([ 2*arm_length_front, 2*arm_length_front, 2*arm_length_front ]);
           
             //Echo lock attach remove piece on front arm
-            translate([ aero_grav_center[1], -y_offset-b_ellipse, wing_root_mm+a_ellipse]){
+            translate([ motor_x_pos, -y_offset-b_ellipse, wing_root_mm+a_ellipse]){
                 rotate([ -90, 90, 0 ]){           
                     color("blue")
                         linear_extrude(height=piece_height, scale = 1.2) 
@@ -256,11 +258,11 @@ module motor_arm(a_ellipse, b_ellipse, arm_length, motor_height, arm_tilt_angle,
 
     if(back){
         union(){
-            translate([ aero_grav_center[1] - 2*motor_arm_length , -motor_arm_length, wing_root_mm - motor_arm_length])
-                cube([ 2*motor_arm_length, 2*motor_arm_length, 2*motor_arm_length ]);
+            translate([ motor_x_pos - 2*arm_length_back , -arm_length_back, wing_root_mm - arm_length_back])
+                cube([ 2*arm_length_back, 2*arm_length_back, 2*arm_length_back ]);
 
             //Echo lock attach remove piece on front arm
-            translate([ aero_grav_center[1], -y_offset-b_ellipse, wing_root_mm+a_ellipse]){
+            translate([ motor_x_pos, -y_offset-b_ellipse, wing_root_mm+a_ellipse]){
                 rotate([ -90, 90, 0 ]){           
                     color("red")
                         linear_extrude(height=piece_height, scale = 0.8)         
@@ -277,7 +279,7 @@ module motor_arm(a_ellipse, b_ellipse, arm_length, motor_height, arm_tilt_angle,
         
         intersection(){  //Intersection to clean the edge of echo lock
         
-            translate([ aero_grav_center[1] - (1-offset_clearance), -y_offset-b_ellipse, wing_root_mm+a_ellipse]){
+            translate([ motor_x_pos - (1-offset_clearance), -y_offset-b_ellipse, wing_root_mm+a_ellipse]){
                 rotate([ -90, 90, 0 ]){  
               color("red")
                 linear_extrude(height=piece_height, scale = 0.8)         
@@ -285,9 +287,9 @@ module motor_arm(a_ellipse, b_ellipse, arm_length, motor_height, arm_tilt_angle,
                 }    
             }//End translate
                    
-            translate([ aero_grav_center[1] + arm_length, y_offset, wing_root_mm+a_ellipse])
+            translate([ motor_x_pos + arm_length_front, y_offset, wing_root_mm+a_ellipse])
                 rotate([ 0, -90, 0 ])           
-                    linear_extrude(height = 2*arm_length)
+                    linear_extrude(height = 2*arm_length_front)
                         scale([1, b_ellipse/a_ellipse])
                             circle(r = a_ellipse, $fn=100); 
             
@@ -299,7 +301,7 @@ module motor_arm(a_ellipse, b_ellipse, arm_length, motor_height, arm_tilt_angle,
         intersection(){  //Intersection to clean the edge of echo lock
             
             difference(){          
-                translate([ aero_grav_center[1] - (1-offset_clearance), -y_offset-b_ellipse, wing_root_mm+a_ellipse]){
+                translate([ motor_x_pos - (1-offset_clearance), -y_offset-b_ellipse, wing_root_mm+a_ellipse]){
                     rotate([ -90, 90, 0 ]){      
                         color("blue")
                             linear_extrude(height=piece_height, scale = 1.2) 
@@ -307,7 +309,7 @@ module motor_arm(a_ellipse, b_ellipse, arm_length, motor_height, arm_tilt_angle,
                     }    
                 }
                 
-                translate([ aero_grav_center[1], -y_offset-b_ellipse, wing_root_mm+a_ellipse]){
+                translate([ motor_x_pos, -y_offset-b_ellipse, wing_root_mm+a_ellipse]){
                 rotate([ -90, 90, 0 ]){      
               color("red")
                 linear_extrude(height=piece_height, scale = 0.8)         
@@ -317,9 +319,9 @@ module motor_arm(a_ellipse, b_ellipse, arm_length, motor_height, arm_tilt_angle,
             }//End difference
               
             
-            translate([ aero_grav_center[1] + arm_length, y_offset, wing_root_mm+a_ellipse])
+            translate([ motor_x_pos + arm_length_back, y_offset, wing_root_mm+a_ellipse])
                 rotate([ 0, -90, 0 ])           
-                    linear_extrude(height = 2*arm_length)
+                    linear_extrude(height = 2*arm_length_back)
                         scale([1, b_ellipse/a_ellipse])
                             circle(r = a_ellipse, $fn=100); 
             

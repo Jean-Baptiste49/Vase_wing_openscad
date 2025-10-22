@@ -20,7 +20,6 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 
 // TODO 
 // Adjust arm size
-// arm funciton middle spar
 
 
 
@@ -58,7 +57,7 @@ Right_side = false;
 
 Aileron_part = false;
 Root_part = false;
-Mid_part = true;
+Mid_part = false;
 Tip_part = false;
 Mid_Tip_part = false;
 Motor_arm_full = false;
@@ -78,15 +77,23 @@ wing_mode = 2; // 1=trapezoidal wing 2= elliptic wing
 center_airfoil_change_perc = 100; // Where you want to change to the center airfoil 100 is off
 tip_airfoil_change_perc = 100;    // Where you want to change to the tip airfoil 100 is off
 slice_transisions = 0; // This is the number of slices that will be a blend of airfoils when airfoil is changed 0 is off
+
+
+
 //**************** Motor arm **********//
 ellipse_maj_ax = 9;        // ellipse's major axis (rayon z)
 ellipse_min_ax = 13;        // ellipse's minor axis (rayon y)
-motor_arm_length = 250;        // Tube length z
+motor_arm_length_front = 240;        // Tube length z
+motor_arm_length_back = 270;        // Tube length z
 motor_arm_height = 19;      // Height of motor arm
 motor_arm_tilt_angle  = 20; // Tilt angle of motor arm
 motor_arm_screw_fit_offset = 2; // Offset to adjust screw position after rotation
-dummy_motor = false;
+dummy_motor = true; // Parameters to see how the helix is positionned in comparison of the aircraft
+motor_arm_grav_center_offset = 35;
 // More parameters are available inside the motor_arm module
+
+
+
 //**************** Wing Airfoil dimensions **********//
 // Total must do wing_mm
 motor_arm_width = 2*ellipse_maj_ax;
@@ -96,19 +103,23 @@ wing_tip_mm = wing_mm - wing_root_mm - wing_mid_mm - motor_arm_width;
 echo("Wing_tip_mm = ", wing_tip_mm);
 AC_CG_margin = 10; //Margin between mean aerodynamic center and gravity center in pourcentage
 aerodyn_center_plot = false; //Black
-gravity_center_plot = false; //Green
+gravity_center_plot = true; //Green
 //******//
+
+
 //**************** Fuselage and center part **********//
 center_width = 150;
 center_length = 250;
 center_height = 17;
 //******//
 
+
 //****************Wing Washout settings**********//
 washout_deg = 1.5;         // how many degrees of washout you want 0 for none
 washout_start = 60;      // where you would like the washout to start in mm from root
 washout_pivot_perc = 25; // Where the washout pivot point is percent from LE
 //******//
+
 
 //**************** Wing Sweep X settings **********//
 use_custom_lead_edge_sweep = true;
@@ -749,7 +760,7 @@ module motor_arm_main(aero_grav_center){
     
         if(Motor_arm_full || Motor_arm_front || Motor_arm_back || Full_system){
         difference(){
-        motor_arm(ellipse_maj_ax, ellipse_min_ax, motor_arm_length, motor_arm_height, motor_arm_tilt_angle, motor_arm_screw_fit_offset, aero_grav_center, back =Motor_arm_back, front = Motor_arm_front, full = Motor_arm_full);
+        motor_arm(ellipse_maj_ax, ellipse_min_ax, motor_arm_length_front, motor_arm_length_back, motor_arm_height, motor_arm_tilt_angle, motor_arm_screw_fit_offset, aero_grav_center, motor_arm_grav_center_offset, back =Motor_arm_back, front = Motor_arm_front, full = Motor_arm_full);
             union(){
                         CreateSparHole(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, slice_gap_width, spar_flip_side_1);
                         CreateSparHole(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, slice_gap_width, spar_flip_side_2);
