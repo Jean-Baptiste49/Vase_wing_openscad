@@ -19,15 +19,18 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 
 
 // TODO 
-// Tip redraw 
 // Adjust arm size
 // arm funciton middle spar
+
 
 
 // Main stage :
 // Longerons insertiin main stage + long
 // Longerons axe x ?
 // Faire surépaisseur main stage longerons
+
+// Get the part ready to draw 
+
 
 // Add written CG on arm or fuselage
 
@@ -36,7 +39,7 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 
 //Later :
 // Ailerons module clean and fix little bug on command pin
-
+// Ribs conflict with ailerons pin + pi attach both sides ?
 // Try on Orca and add printer conf in git
 // Readme and clean and comment function with parameters description
 // Structure Grid Mode 1 Adapat ? 
@@ -63,10 +66,10 @@ Motor_arm_front = false;
 Motor_arm_back = false;
 Center_part = false;
 
-Full_system = false;
+Full_system = true;
 
 //****************Wing Airfoil settings**********//
-wing_sections = 20; // how many sections : more is higher resolution but higher processing
+wing_sections = Full_system?10:20; // how many sections : more is higher resolution but higher processing. We decrease wing_sections for Full_system because it's too much elements just for display
 wing_mm = 500;            // wing length in mm (= Half the wingspan)
 wing_root_chord_mm = 180; // Root chord length in mm
 wing_tip_chord_mm = 110; // wing tip chord length in mm (Not relevant for elliptic wing);
@@ -233,9 +236,9 @@ aileron_dist_LE_pin_center = aileron_thickness;// - aileron_command_pin_b_radius
 
 //**************** Winglet settings **********//
 winglet_mode = true;
-winglet_height = 25;
+winglet_height = 35;
 winglet_width = 2;
-winglet_rear_offset = 35;
+winglet_rear_offset = 45;
 winglet_y_pos = -2;
 winglet_x_pos = 7;
 base_length = 4*wing_root_chord_mm/10;
@@ -243,12 +246,12 @@ corner_radius = 0;
     
 attached_1_x_pos = -10;
 attached_1_y_pos = 1;
-attached_1_radius = 2;
+attached_1_radius = 1.5;
 attached_1_length = 15;
     
 attached_2_x_pos = -28;
 attached_2_y_pos = 0;
-attached_2_radius = 1.5;
+attached_2_radius = 1;
 attached_2_length = 15;
 //******//
 
@@ -344,6 +347,10 @@ module wing_main()
                                     {
                                         Ailerons_pin_void();
                                     }
+                                    if(winglet_mode)
+                                    {
+                                        Create_winglet_void();
+                                    }
                                     if (create_servo_void)
                                     {
                                         rotate([ 0, 0, servo_rotate_z_deg ])
@@ -382,6 +389,10 @@ module wing_main()
             {
                 CreateAileronVoid();
             }
+            if(winglet_mode)
+            {
+                Create_winglet(cube_for_vase = true);    
+            }             
             if (spar_hole)
             {
                 CreateSparHole(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, slice_gap_width, spar_flip_side_1);
@@ -425,8 +436,14 @@ module wing_main()
     cube([2000, 2000, wing_mid_mm]); 
   }  
   if(Tip_part) {
+    if(winglet_mode) // No intersection with anything
+    {
+        cube([2000, 2000, 0]);  
+    } else 
+    {
     translate([-1000, -1000, wing_root_mm + motor_arm_width + wing_mid_mm])
-    cube([2000, 2000, wing_tip_mm]); 
+    cube([2000, 2000, wing_tip_mm]);     
+    }
   } 
   if(Aileron_part) {
     translate([-1000, -1000, wing_root_mm + motor_arm_width])
@@ -435,14 +452,19 @@ module wing_main()
   if(Mid_Tip_part) {
     translate([-1000, -1000, wing_root_mm + motor_arm_width])
     cube([2000, 2000, wing_mid_mm + wing_tip_mm]); 
-  }   
+  } // End difference     
   }// End intersection
   
-  } // End if Full wing
+    if(winglet_mode && Tip_part)
+    {
+        Create_winglet();      
+    }
+    
+  } // End if not Full wing
   
   
   else if (Full_system) {
-  difference() {
+  //difference() {
   union() {
   intersection() {
     difference()
@@ -496,6 +518,10 @@ module wing_main()
                                     {
                                         Ailerons_pin_void();
                                     }
+                                    if(winglet_mode)
+                                    {
+                                        Create_winglet_void();
+                                    }                                    
                                     if (create_servo_void)
                                     {
                                         rotate([ 0, 0, servo_rotate_z_deg ])
@@ -533,6 +559,10 @@ module wing_main()
             {
                 CreateAileronVoid();
             }
+            if(winglet_mode)
+            {
+                Create_winglet(cube_for_vase = true);    
+            }            
             if (spar_hole)
             {
                 CreateSparHole(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, slice_gap_width, spar_flip_side_1);
@@ -564,7 +594,16 @@ module wing_main()
             }                
         }
     }
+    if(winglet_mode)//We remove the tip part if winglet mode
+    {
+        translate([-1000, -1000, 0])
+            cube([2000, 2000, wing_root_mm + motor_arm_width + wing_mid_mm ]); 
+     }
   } // End 1st intersection
+    if(winglet_mode)
+    {
+        Create_winglet();      
+    }  
   
     // This part is to have aileron with the rest of the wing in full wing mode
     intersection() {
@@ -614,7 +653,7 @@ module wing_main()
                                         CreateSparVoid(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, spar_hole_void_clearance, spar_flip_side_1);
                                         CreateSparVoid(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, spar_hole_void_clearance_2, spar_flip_side_2);
                                         CreateSparVoid(sweep_angle_3rd_spar, spar_hole_offset_3, spar_hole_perc_3, spar_hole_size_3, spar_hole_length_3, wing_root_chord_mm, spar_hole_void_clearance_3, spar_flip_side_3);
-                                    }
+                                    }                                   
                                     if (create_servo_void)
                                     {
                                         rotate([ 0, 0, servo_rotate_z_deg ])
@@ -647,7 +686,7 @@ module wing_main()
             }
         }
         union()
-        {
+        {     
             if (spar_hole)
             {
                 CreateSparHole(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, slice_gap_width, spar_flip_side_1);
@@ -683,9 +722,11 @@ module wing_main()
     {
     CreateAileron();
     }
+  
+    
   } // End 2nd intersection
   } // End union in Full wing
-    //Union for showing separation between parts. Just for display
+  /*  //Union for showing separation between parts. Just for display
     union(){
       translate([ -500, -500, wing_root_mm ])
         cube([ 1000, 1000, motor_arm_width ]);        
@@ -700,7 +741,7 @@ module wing_main()
         cube([ 1000, 1000, 1 ]);         
     }
     
-  } // End difference 
+  } // End difference */
   }// End if Full wing
 }
 
@@ -908,105 +949,6 @@ else
 }
 
 
-Create_winglet2();
 
-module Create_winglet2()
-{
-    
-    points_le = get_leading_edge_points();
-    z_pos = wing_root_mm + wing_mid_mm + motor_arm_width;
-    manual_rounding = 3;
-    
-    
-  
-    function interpolate_pt(p1, p2, target_z) =
-        let (dz = p2[2] - p1[2], t = (target_z - p1[2]) / dz)
-        [ p1[0] + t * (p2[0] - p1[0]), p1[1] + t * (p2[1] - p1[1]), target_z ];
 
-    function find_interpolated_point(target_z, pts) =
-        let (
-            pairs = [for (i = [0 : len(pts) - 2]) [pts[i], pts[i+1]]],
-            valid = [ for (pr = pairs) if ((pr[0][2] <= target_z && target_z <= pr[1][2]) || (pr[1][2] <= target_z && target_z <= pr[0][2])) pr ]
-        )
-        (len(valid) > 0) ? interpolate_pt(valid[0][0], valid[0][1], target_z) : undef;
-
-    pt_start = find_interpolated_point(z_pos, points_le);
-    
-    module winglet_shape() {
-        polygon(points=[
-            [0, 0], 
-            [base_length, 0], 
-            [base_length + winglet_rear_offset, winglet_height], 
-            [2 * base_length / 3, winglet_height]
-        ]);
-    }
-   
-   intersection(){
-    union() {
-    
-    translate([pt_start[0]-winglet_x_pos,winglet_y_pos,z_pos])
-        color("orange")   
-          linear_extrude(height = winglet_width)
-            offset(r = corner_radius)
-                offset(delta = -corner_radius)
-                    winglet_shape(); 
-                
-      
-
-    p1 = [pt_start[0]-winglet_x_pos, winglet_y_pos, z_pos];
-    p2 = [pt_start[0]-winglet_x_pos + 2 * base_length / 3, winglet_y_pos+ winglet_height, z_pos];      
-    
-    dx = p2[0] - p1[0];
-    dy = p2[1] - p1[1];
-    dz = p2[2] - p1[2];
-    distance = sqrt(dx*dx + dy*dy + dz*dz);
-    angle = atan2(dy, dx);
-    mid = [ (p1[0] + p2[0])/2, (p1[1] + p2[1])/2, z_pos + winglet_width / 2 ];
-    
-    translate(mid)
-        rotate([0, 90, angle])
-            color("blue")
-                cylinder(h=distance+1, r=winglet_width/2, center=true);
-                
-                
-    p3 = [pt_start[0]-winglet_x_pos + 2 * base_length / 3, winglet_y_pos+ winglet_height, z_pos];  
-    p4 = [pt_start[0]-winglet_x_pos + base_length+ winglet_rear_offset, winglet_y_pos + winglet_height, z_pos];    
-    
-    dx2 = p4[0] - p3[0];
-    dy2 = p4[1] - p3[1];
-    dz2 = p4[2] - p3[2];
-    distance2 = sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2);
-    angle2 = atan2(dy2, dx2);
-    mid2 = [ (p3[0] + p4[0])/2, (p3[1] + p4[1])/2, z_pos + winglet_width / 2 ];
-    
-    translate(mid2)
-        rotate([0, 90, angle2])
-            color("blue")
-                cylinder(h=distance2, r=winglet_width/2, center=true);   
-    }// End of Union
-   
-    union(){
-        translate([pt_start[0]-winglet_x_pos + 3*manual_rounding/2, winglet_y_pos+manual_rounding/2, z_pos+ winglet_width])
-            rotate([180,0,0])
-                color("red") 
-                    cylinder(h = winglet_width, r = manual_rounding, center = false); 
-                    
-        translate([pt_start[0]-winglet_x_pos + 3*manual_rounding/2, winglet_y_pos, z_pos])          
-            cube([2*base_length,2*winglet_height,winglet_width]);  
-    }// End of Union
-    
-    }// End of intersection
-    
-    
-    translate([pt_start[0]-attached_1_x_pos,attached_1_y_pos,z_pos])
-        rotate([180,0,0])
-            color("green") 
-                cylinder(h = attached_1_length, r = attached_1_radius, center = false);
-            
-    translate([pt_start[0]-attached_2_x_pos,attached_2_y_pos,z_pos])
-        rotate([180,0,0])
-            color("green") 
-                cylinder(h = attached_2_length, r = attached_2_radius, center = false);
-
-}   
     
