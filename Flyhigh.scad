@@ -4,7 +4,8 @@
 // https://www.thingiverse.com/thing:3506692
 // https://github.com/guillaumef/openscad-airfoil
 
-
+//Tips
+// 1- If you want to add something into the wing, add a void offset around the part you want to add to avoid conflict with intern ribs during vase print  
 
 // Wing airfoils
 include <lib/openscad-airfoil/m/mh45.scad>
@@ -18,7 +19,8 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 
 
 // TODO 
-// Tip redraw and more ribs
+// Issue with pin mid and ribs intersection
+// Tip redraw and 
 // Adjust arm size
 // arm funciton middle spar
 
@@ -34,7 +36,6 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 // Emprunte servo fit 
 
 //Later :
-// Issue with pin mid and ribs intersection
 // Ailerons module clean and fix little bug on command pin
 
 // Try on Orca and add printer conf in git
@@ -44,7 +45,7 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 // Close face ?
 
 
-//*******************END***************************//
+//*******************END********************k*******//
 
 //****************Global Variables*****************//
 
@@ -55,7 +56,7 @@ Right_side = false;
 
 Aileron_part = false;
 Root_part = false;
-Mid_part = false;
+Mid_part = true;
 Tip_part = false;
 Mid_Tip_part = false;
 Motor_arm_full = false;
@@ -63,7 +64,7 @@ Motor_arm_front = false;
 Motor_arm_back = false;
 Center_part = false;
 
-Full_system = true;
+Full_system = false;
 
 //****************Wing Airfoil settings**********//
 wing_sections = 20; // how many sections : more is higher resolution but higher processing
@@ -148,7 +149,7 @@ grid_size_factor = 2; // changes the size of the inner grid blocks
 
 //**************** Grid mode 2 settings **********//
 spar_offset = 12;//15; // Offset the spars from the LE/TE
-rib_num = 7;      // Number of ribs
+rib_num = 14;      // Number of ribs
 rib_offset = 3;   // Offset
 //******//
 
@@ -190,14 +191,14 @@ sweep_angle_3rd_spar = 2.0*sweep_angle/3;
 
 //**************** Servo settings **********//  
 servo_dimension_perso = [24,9,27]; 
-all_pts = get_trailing_edge_points();
-pt_start = find_interpolated_point(wing_root_mm - 0, all_pts);
+all_pts_servo = get_trailing_edge_points();
+pt_start_servo = find_interpolated_point(wing_root_mm - 0, all_pts_servo);
 
 create_servo_void = true; // It is important to check that your servo placement doesnt create any artifacts(You can
 // comment out the CreateWing() function to assist)
 servo_type = 4;           // 1=3.7g 2=5g 3=9g 4=perso
-servo_dist_root_mm = wing_root_mm-6; // servo placement from root
-servo_dist_le_mm = pt_start[0]-40;    // servo placement from the leading edge
+servo_dist_root_mm = wing_root_mm-6.65; // servo placement from root
+servo_dist_le_mm = pt_start_servo[0]-40;    // servo placement from the leading edge
 servo_rotate_z_deg = -0;  // degrees to rotate on z axis
 servo_dist_depth_mm = -0; // offset the servo into or out of the wing till you dont see red
 servo_show = false;       // for debugging only. Show the servo for easier placement
@@ -308,6 +309,7 @@ module wing_main()
                                         CreateRibVoids2();
                                     }
                                 }
+                                //Remove from Ribs the space for Spar hole and Servo
                                 union()
                                 {
                                     if (spar_hole)
@@ -315,6 +317,10 @@ module wing_main()
                                         CreateSparVoid(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, spar_hole_void_clearance, spar_flip_side_1);
                                         CreateSparVoid(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, spar_hole_void_clearance_2, spar_flip_side_2);
                                         CreateSparVoid(sweep_angle_3rd_spar, spar_hole_offset_3, spar_hole_perc_3, spar_hole_size_3, spar_hole_length_3, wing_root_chord_mm, spar_hole_void_clearance_3, spar_flip_side_3);
+                                    }
+                                    if(create_aileron)
+                                    {
+                                        Ailerons_pin_void();
                                     }
                                     if (create_servo_void)
                                     {
@@ -463,6 +469,10 @@ module wing_main()
                                         CreateSparVoid(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, spar_hole_void_clearance, spar_flip_side_1);
                                         CreateSparVoid(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, spar_hole_void_clearance_2, spar_flip_side_2);
                                         CreateSparVoid(sweep_angle_3rd_spar, spar_hole_offset_3, spar_hole_perc_3, spar_hole_size_3, spar_hole_length_3, wing_root_chord_mm, spar_hole_void_clearance_3, spar_flip_side_3);
+                                    }
+                                    if(create_aileron)
+                                    {
+                                        Ailerons_pin_void();
                                     }
                                     if (create_servo_void)
                                     {
@@ -769,8 +779,7 @@ module center_part_main(aero_grav_center, ct_width, ct_length, ct_height){
 }
 
 
- 
-//CreateAileron();
+
     
 if (wing_sections * 0.2 < slice_transisions)
 {
@@ -810,7 +819,7 @@ else
         }//End if Right_side
     }
 
-
+    
     //**************** Motor arm **********//
     if(Left_side || Full_system){
     motor_arm_main(aero_grav_center);
@@ -825,7 +834,7 @@ else
     
     //**************** Center part **********//
     center_part_main(aero_grav_center, center_width, center_length, center_height);
-    //Servo4();
+    
     
     
     
@@ -870,9 +879,12 @@ else
             else if (servo_type == 4)
             {
                 Servo4();
+                Servo4Void();
             }
         }
     }
 }
 
 
+   
+    

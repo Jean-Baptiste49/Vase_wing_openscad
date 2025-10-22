@@ -228,6 +228,8 @@ module Servo4 ()
 
 module Servo4Void () 
 {
+    void_offset = 1.1;
+    
     all_pts = get_trailing_edge_points();
  
     pt_start = find_interpolated_point(aileron_start_z, all_pts);
@@ -244,6 +246,7 @@ module Servo4Void ()
 
     
     
-    rotate([ 0, sweep_ang, 0 ]) //Spar angle rotation to follow the sweep
-        cube([ servo_dimension_perso[0],servo_dimension_perso[1],servo_dimension_perso[2]]);
+    translate([-void_offset/2,-void_offset/2,-void_offset/2])
+        rotate([ 0, sweep_ang, 0 ]) //Spar angle rotation to follow the sweep
+            cube([ servo_dimension_perso[0]*void_offset,servo_dimension_perso[1]*void_offset,servo_dimension_perso[2]*void_offset]);
 }

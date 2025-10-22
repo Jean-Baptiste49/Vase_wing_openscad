@@ -69,13 +69,12 @@ module CreateAileronVoid() {
             half_cylinder_between_points(pt_start_cyl, pt_end_cyl, aileron_cyl_radius, cylindre_wing_dist_nosweep);
         }        
     }
-           
             
             // Pin hole 
             translate([
             full_pts[len(full_pts) - 1][0] - aileron_dist_LE_pin_center,        
             full_pts[len(full_pts) - 1][1] + y_offset_aileron_to_wing/2,  
-            full_pts[len(full_pts) - 1][2] - 2*aileron_pin_hole_length 
+            full_pts[len(full_pts) - 1][2]  
         ])
             rotate([ 0, sweep_angle_aileron, 0 ]){ //Spar angle rotation to follow the sweep
 
@@ -87,14 +86,112 @@ module CreateAileronVoid() {
                 translate([ 0, 0, -aileron_pin_hole_length/2 ])
                     cube([ aileron_thickness, slice_gap_width, aileron_pin_hole_length ]);
             }
-            
+         
 
           
         
 }
 
 
+module Ailerons_pin_void(){
 
+    void_offset_command_ailerons = 1.3;
+
+    all_pts = get_trailing_edge_points();
+
+    function interpolate_pt(p1, p2, target_z) =
+        let (
+            dz = p2[2] - p1[2],
+            t = (target_z - p1[2]) / dz
+        )
+        [
+            p1[0] + t * (p2[0] - p1[0]),
+            p1[1] + t * (p2[1] - p1[1]),
+            target_z
+        ];
+
+    function find_interpolated_point(target_z, pts) =
+        let (
+            pairs = [for (i = [0 : len(pts) - 2]) [pts[i], pts[i+1]]],
+            valid = [
+                for (pair = pairs)
+                    if (
+                        (pair[0][2] <= target_z && target_z <= pair[1][2]) ||
+                        (pair[1][2] <= target_z && target_z <= pair[0][2])
+                    ) pair
+            ]
+        )
+        (len(valid) > 0) ? interpolate_pt(valid[0][0], valid[0][1], target_z) : undef;
+
+    pt_start = find_interpolated_point(aileron_start_z, all_pts);
+    pt_end   = find_interpolated_point(aileron_end_z, all_pts);
+    inner_pts = [for (pt = all_pts) if (pt[2] > aileron_start_z && pt[2] < aileron_end_z) pt];
+    full_pts = concat(
+        pt_start != undef ? [pt_start] : [],
+        inner_pts,
+        pt_end != undef ? [pt_end] : []
+    );
+    
+    
+    // Get the sweep angle between extrem point of ailerons
+    sweep_angle_aileron = atan((full_pts[len(full_pts) - 1][0] - full_pts[0][0])/(full_pts[len(full_pts) - 1][2] -full_pts[0][2])); 
+    
+    
+           
+        union(){    
+            // Pin hole 
+            translate([
+            full_pts[len(full_pts) - 1][0] - aileron_dist_LE_pin_center,        
+            full_pts[len(full_pts) - 1][1] + y_offset_aileron_to_wing/2,  
+            full_pts[len(full_pts) - 1][2] ])
+            
+            rotate([ 0, sweep_angle_aileron, 0 ]){ //Spar angle rotation to follow the sweep
+
+            cylinder(h = aileron_pin_hole_length, r = aileron_pin_hole_diameter/2, center = true);
+            
+            //cube use for access from extern layer to pin hole in vase mode
+            //We use a side to join pin either extern mid and aileron layer cf rotate 90
+            rotate([ 0, 0, 90 ])
+                translate([ 0, 0, -aileron_pin_hole_length/2 ])
+                    cube([ aileron_thickness, slice_gap_width, aileron_pin_hole_length ]);
+            }
+         
+      
+      
+      // We withdraw the pin command hole to the aileron to avoid conflict with ribs
+       translate([
+            full_pts[0][0] - aileron_dist_LE_command_center,        
+            full_pts[0][1] + y_offset_aileron_to_wing/2,  
+            full_pts[0][2] + motor_arm_width - aileron_command_pin_void_length/2
+        ])
+    rotate([ 0, sweep_angle_aileron, 0 ]) //Spar angle rotation to follow the sweep
+        union() {
+            translate([-7.5,0,0])
+            color("green")
+            cylinder(h = aileron_command_pin_void_length*void_offset_command_ailerons, r = aileron_command_pin_b_radius*void_offset_command_ailerons);
+
+            translate([7.5,0,0])
+            color("green")
+            cylinder(h = aileron_command_pin_void_length*void_offset_command_ailerons, r = aileron_command_pin_s_radius*void_offset_command_ailerons);
+
+color("green")
+            linear_extrude(height = aileron_command_pin_void_length*void_offset_command_ailerons)
+            color("green")
+                scale([void_offset_command_ailerons, void_offset_command_ailerons])
+                    polygon(points=[[aileron_command_pin_width, -aileron_command_pin_s_radius], [aileron_command_pin_width, aileron_command_pin_s_radius], [-aileron_command_pin_width, aileron_command_pin_b_radius], [-aileron_command_pin_width, -aileron_command_pin_b_radius]]);
+             
+            translate([-aileron_dist_LE_command_center/4,-aileron_thickness,0])
+                rotate([0,0,90])
+                color("green")
+                    cube([ aileron_thickness, slice_gap_width, aileron_command_pin_void_length*void_offset_command_ailerons ]); 
+    }
+      
+      
+        } // End of Union
+
+
+
+}
 
 
 module CreateAileron() {
@@ -191,15 +288,11 @@ module CreateAileron() {
             linear_extrude(height = aileron_command_pin_void_length)
                 polygon(points=[[aileron_command_pin_width, -aileron_command_pin_s_radius], [aileron_command_pin_width, aileron_command_pin_s_radius], [-aileron_command_pin_width, aileron_command_pin_b_radius], [-aileron_command_pin_width, -aileron_command_pin_b_radius]]);
              
-           /* translate([-aileron_thickness,0,0])
-                cube([ aileron_thickness, slice_gap_width, 2*aileron_command_pin_void_length ]);   */
             translate([-aileron_dist_LE_command_center/4,-aileron_thickness,0])
-            rotate([0,0,90])
-                cube([ aileron_thickness, slice_gap_width, aileron_command_pin_void_length ]); 
+                rotate([0,0,90])
+                    cube([ aileron_thickness, slice_gap_width, aileron_command_pin_void_length ]); 
                 
-     /*       translate([aileron_dist_LE_command_center/4,0,0])
-            rotate([0,0,90])
-                cube([ aileron_thickness, slice_gap_width, aileron_command_pin_void_length ]);   */               
+             
                 
         }// End of Union  
       
