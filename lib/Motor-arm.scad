@@ -12,7 +12,7 @@ module motor_arm(a_ellipse, b_ellipse, arm_length_front, arm_length_back, motor_
     dummy_motor_base_radius = 9.5;
     dummy_motor_base_height = 20;
     motor_support_scale = 1.8;
-    dummy_helix_radius = 152.4; //6 inch
+    dummy_helix_radius = 90; //6 inch
     dummy_helix_height = 20;
     x_pos_screw_long = cos(45) * (motor_footprint_long );
     y_pos_screw_long = sin(45) * (motor_footprint_long );

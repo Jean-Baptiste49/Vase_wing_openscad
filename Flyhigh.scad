@@ -19,21 +19,17 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 
 
 // TODO 
-// Adjust arm size
-
-// Main stage :
-// Longerons insertiin main stage + long
-// Longerons axe x ?
-// Faire surépaisseur main stage longerons
+// Rear motor attach Center part
 
 
-// Add written CG on arm or fuselage
 
 //Test Impression :
 // Emprunte servo fit 
+// Mid clean print or remove pin hole from mid to tip
 
 //Later :
 // Ailerons pin attach both sides 
+// Longerons axe x Main stage
 // Ailerons module clean
 // Try on Orca and add printer conf in git
 // Readme and clean and comment function with parameters description
@@ -53,15 +49,15 @@ Right_side = false;
 
 Aileron_part = false;
 Root_part = false;
-Mid_part = true;
+Mid_part = false;
 Tip_part = false;
 Mid_Tip_part = false;
 Motor_arm_full = false;
 Motor_arm_front = false;
 Motor_arm_back = false;
-Center_part = false;
+Center_part = true;
 
-Full_system = true;
+Full_system = false;
 
 //****************Wing Airfoil settings**********//
 wing_sections = Full_system?10:20; // how many sections : more is higher resolution but higher processing. We decrease wing_sections for Full_system because it's too much elements just for display
@@ -79,12 +75,12 @@ slice_transisions = 0; // This is the number of slices that will be a blend of a
 //**************** Motor arm **********//
 ellipse_maj_ax = 9;        // ellipse's major axis (rayon z)
 ellipse_min_ax = 13;        // ellipse's minor axis (rayon y)
-motor_arm_length_front = 240;        // Tube length z
-motor_arm_length_back = 270;        // Tube length z
+motor_arm_length_front = 170;        // Tube length z
+motor_arm_length_back = 210;        // Tube length z
 motor_arm_height = 19;      // Height of motor arm
 motor_arm_tilt_angle  = 20; // Tilt angle of motor arm
 motor_arm_screw_fit_offset = 2; // Offset to adjust screw position after rotation
-dummy_motor = true; // Parameters to see how the helix is positionned in comparison of the aircraft
+dummy_motor = false; // Parameters to see how the helix is positionned in comparison of the aircraft
 motor_arm_grav_center_offset = 35;
 // More parameters are available inside the motor_arm module
 
@@ -104,9 +100,9 @@ gravity_center_plot = false; //Green
 
 
 //**************** Fuselage and center part **********//
-center_width = 150;
-center_length = 250;
-center_height = 17;
+center_width = 100;
+center_length = 220;
+center_height = 12;
 //******//
 
 
@@ -295,7 +291,7 @@ include <lib/Aileron-Creator.scad>
 include <lib/Motor-arm.scad>
 include <lib/Tools.scad>
 include <lib/Winglet-Creator.scad>
-
+include <lib/Center-part.scad>
 
 
     
@@ -804,22 +800,7 @@ module motor_arm_main(aero_grav_center){
 
 
 
-module center_part(aero_grav_center, ct_width, ct_length, ct_height){    
 
-
- 
-size = [ct_length, ct_width];    // Square size (X, Y)
-radius = 3;         // Radius of rounded corners
-
-translate([ct_length/2,2*ct_height/3,-ct_width/2])
-    rotate([90,0,0])
-        linear_extrude(ct_height)
-            offset(r=radius)
-                offset(delta=-radius)
-                    square([ct_length, ct_width], center=true);
-            
-           
-}
 
 
 module center_part_main(aero_grav_center, ct_width, ct_length, ct_height){  
