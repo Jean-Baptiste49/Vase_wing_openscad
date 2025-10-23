@@ -29,6 +29,8 @@ battery_hole_length = 25;
 battery_x_pos_1 = 100;
 battery_x_pos_2 = 180;
 
+rear_motor_int_circle_r = 4.75;
+
                     
                 
     difference(){

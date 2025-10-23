@@ -91,28 +91,30 @@ module Create_winglet(cube_for_vase = false)
     }// End of intersection
     
     
-    translate([pt_start[0]-attached_1_x_pos,attached_1_y_pos,z_pos]){
-        rotate([180,0,0])
+    translate([pt_start[0]-attached_1_x_pos,attached_1_y_pos,z_pos+1]){
+        rotate([180,sweep_angle,0])
             color("green") 
                 cylinder(h = attached_1_length, r = attached_1_radius, center = false);
                 
             if(cube_for_vase){
-                translate([0,0,-cube_for_vase_z1])
-                    color("green")   
-                        cube([slice_gap_width,cube_for_vase_y1,cube_for_vase_z1]);
+                rotate([0,sweep_angle,0])
+                    translate([0,0,-cube_for_vase_z1])
+                        color("green")   
+                            cube([slice_gap_width,cube_for_vase_y1,cube_for_vase_z1]);
                  }
                
                 }                
             
-    translate([pt_start[0]-attached_2_x_pos,attached_2_y_pos,z_pos]){
-        rotate([180,0,0])
+    translate([pt_start[0]-attached_2_x_pos,attached_2_y_pos,z_pos + 1]){
+        rotate([180,sweep_angle,0])
             color("green") 
                 cylinder(h = attached_2_length, r = attached_2_radius, center = false);
                 
-            if(cube_for_vase){    
-                translate([0,0,-cube_for_vase_z2])
-                    color("green")   
-                        cube([slice_gap_width,cube_for_vase_y2,cube_for_vase_z2]);
+            if(cube_for_vase){
+                rotate([0,sweep_angle,0])    
+                    translate([0,0,-cube_for_vase_z2])
+                        color("green")   
+                            cube([slice_gap_width,cube_for_vase_y2,cube_for_vase_z2]);
                  }
                 }                
 
@@ -142,14 +144,14 @@ module Create_winglet_void()
 
     pt_start = find_interpolated_point(z_pos, points_le);
 
-    translate([pt_start[0]-attached_1_x_pos,attached_1_y_pos,z_pos])
-        rotate([180,0,0])
+    translate([pt_start[0]-attached_1_x_pos,attached_1_y_pos,z_pos+1])
+        rotate([180,sweep_angle,0])
             color("green") 
                 cylinder(h = attached_1_length*scale_up, r = attached_1_radius*scale_up, center = false);
 
             
-    translate([pt_start[0]-attached_2_x_pos,attached_2_y_pos,z_pos])
-        rotate([180,0,0])
+    translate([pt_start[0]-attached_2_x_pos,attached_2_y_pos,z_pos+1])
+        rotate([180,sweep_angle,0])
             color("green") 
                 cylinder(h = attached_2_length*scale_up, r = attached_2_radius*scale_up, center = false);  
 

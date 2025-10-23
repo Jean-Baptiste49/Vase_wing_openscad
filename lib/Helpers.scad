@@ -7,7 +7,9 @@ function ChordLengthAtPosition(length_from_root_mm) = wing_root_chord_mm - (wing
                                                                                (length_from_root_mm / wing_mm);
 
 // Function to calculate the rib cord length along an elliptical path
-function ChordLengthAtEllipsePosition(a, b, x) = 2 * sqrt(((b / 2) * (b / 2) * (1 - (x * x) / (a * a))));
+//function ChordLengthAtEllipsePosition(a, b, x) = 2 * sqrt(((b / 2) * (b / 2) * (1 - (x * x) / (a * a))));
+function ChordLengthAtEllipsePosition(a, b, x) = b * pow(1 - pow(abs(x / a), elliptic_param), 1 / elliptic_param);
+
 
 // Function using quadratic curve to create points that decrease towards the highest part of the wing
 function f(i, numPoints, height) = height * (1 - pow((numPoints - i) / numPoints, 2));

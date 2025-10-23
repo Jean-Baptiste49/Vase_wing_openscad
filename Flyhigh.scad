@@ -21,13 +21,11 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 // TODO 
 // Rear motor attach Center part
 
-
-
 //Test Impression :
 // Emprunte servo fit 
-// Mid clean print or remove pin hole from mid to tip
 
 //Later :
+// Elliptic
 // Ailerons pin attach both sides 
 // Longerons axe x Main stage
 // Ailerons module clean
@@ -57,7 +55,7 @@ Motor_arm_front = false;
 Motor_arm_back = false;
 Center_part = true;
 
-Full_system = false;
+Full_system = true;
 
 //****************Wing Airfoil settings**********//
 wing_sections = Full_system?10:20; // how many sections : more is higher resolution but higher processing. We decrease wing_sections for Full_system because it's too much elements just for display
@@ -69,7 +67,7 @@ wing_mode = 2; // 1=trapezoidal wing 2= elliptic wing
 center_airfoil_change_perc = 100; // Where you want to change to the center airfoil 100 is off
 tip_airfoil_change_perc = 100;    // Where you want to change to the tip airfoil 100 is off
 slice_transisions = 0; // This is the number of slices that will be a blend of airfoils when airfoil is changed 0 is off
-
+elliptic_param = 2; //Paramater for surrellipse adjustement. Ellipse = 2. Square tip >2 and Sharp tip <2
 
 
 //**************** Motor arm **********//
@@ -162,28 +160,28 @@ rib_offset = 3;   // Offset
 debug_spar_hole = false;
 spar_num = 3;     // Number of spars for grid mode 2
 spar_length_offset_1 = wing_mm - 50*wing_tip_mm/10;
-spar_length_offset_2 = wing_mm - 22*wing_tip_mm/10;
+spar_length_offset_2 = wing_mm - 25*wing_tip_mm/10;
 spar_angle_fitting_coeff = 1.15; // Coeff to adjust the spar angle into the wing
 //Spar angle rotation to follow the sweep
 sweep_angle = use_custom_lead_edge_sweep ? atan((spar_angle_fitting_coeff * lead_edge_sweep[len(lead_edge_sweep) - 1][1]) / lead_edge_sweep[len(lead_edge_sweep) - 1][0]) : 0;
 
 spar_hole = true;                // Add a spar hole into the wing
 spar_hole_perc = 15; //28;//25;             // Percentage from leading edge
-spar_hole_size = 5;              // Size of the spar hole
+spar_hole_size = 5.2;//5;              // Size of the spar hole
 spar_hole_length = use_custom_lead_edge_sweep ? spar_length_offset_1/cos(sweep_angle) : spar_length_offset_1; // length of the spar in mm
 spar_hole_offset = 1.8;            // Adjust where the spar is located
 spar_hole_void_clearance = 1; // Clearance for the spar to grid interface(at least double extrusion width is usually needed)
 spar_flip_side_1 = false; // use to offset the spar attached on a side of the wing to the other
 // Second spar
 spar_hole_perc_2 = 37;//45;             // Percentage from leading edge
-spar_hole_size_2 = 5;              // Size of the spar hole
+spar_hole_size_2 = 5.2;              // Size of the spar hole
 spar_hole_length_2= use_custom_lead_edge_sweep ? spar_length_offset_2/cos(sweep_angle) : spar_length_offset_2; // length of the spar in mm
-spar_hole_offset_2 = 1.8;            // Adjust where the spar is located
+spar_hole_offset_2 = 1.2;            // Adjust where the spar is located
 spar_hole_void_clearance_2 = 1; 
 spar_flip_side_2 = false; // use to offset the spar attached on a side of the wing to the other
 // third spar
 spar_hole_perc_3 = 78;//81;             // Percentage from leading edge
-spar_hole_size_3 = 5;              // Size of the spar hole
+spar_hole_size_3 = 5.2;              // Size of the spar hole
 spar_hole_length_3= 31 + motor_arm_width + wing_root_mm;// length of the spar in mm
 spar_hole_offset_3 = 1.0;            // Adjust where the spar is located
 spar_hole_void_clearance_3 = 2;//1; 
@@ -220,7 +218,7 @@ aileron_height = 50;              // Aileron dimension on Y axis
 aileron_pin_hole_diameter = 1.5;  // Diameter of the pin hole fixing the aileron to wing
 aileron_pin_hole_length = 7;      // Length of the pin hole
 aileron_start_z = wing_root_mm;   // Aileron dimension on Z axis on Trailing Edge
-aileron_end_z = wing_root_mm + wing_mid_mm + motor_arm_width - 3*aileron_pin_hole_length; // Aileron dimension on Z axis on Trailing Edge
+aileron_end_z = wing_root_mm + wing_mid_mm + motor_arm_width;// - 3*aileron_pin_hole_length; // Aileron dimension on Z axis on Trailing Edge
 aileron_cyl_radius = 6;  // Aileron void cylinder radius 
 aileron_reduction = 1;            // Aileron size reduction to fit in the ailerons void with ease 
 cylindre_wing_dist_nosweep = 1;   // Distance offset between cylinder and cube to avoid discontinuities in cut
@@ -241,20 +239,20 @@ void_offset_pin_hole_ailerons = 2.5; // Use this offset for ribs to pin conflict
 //**************** Winglet settings **********//
 winglet_mode = true;
 winglet_height = 35;
-winglet_width = 2;
+winglet_width = 4;
 winglet_rear_offset = 45;
 winglet_y_pos = -2;
 winglet_x_pos = 7;
 base_length = 4*wing_root_chord_mm/10;
 corner_radius = 0; 
     
-attached_1_x_pos = -10;
-attached_1_y_pos = 1;
+attached_1_x_pos = -6;
+attached_1_y_pos = 0.5;
 attached_1_radius = 1.5;
 attached_1_length = 15;
     
-attached_2_x_pos = -28;
-attached_2_y_pos = 0;
+attached_2_x_pos = -13.5;
+attached_2_y_pos = 0.5;
 attached_2_radius = 1;
 attached_2_length = 15;
 //******//
@@ -390,14 +388,14 @@ module wing_main()
         }
         union()
         {
-            if(create_aileron && Aileron_part == false)
-            {
-                CreateAileronVoid();
-            }
             if(winglet_mode)
             {
                 Create_winglet(cube_for_vase = true);    
-            }             
+            } 
+            if(create_aileron && Aileron_part == false)
+            {
+                CreateAileronVoid();
+            }            
             if (spar_hole)
             {
                 CreateSparHole(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, slice_gap_width, spar_flip_side_1);
@@ -462,7 +460,13 @@ module wing_main()
   
     if(winglet_mode && Tip_part)
     {
-        Create_winglet();      
+        difference(){ // We remove the pin hole for aileron in the winglet
+        Create_winglet();  
+            if(create_aileron)
+            {
+                CreateAileronVoid();
+            }    
+         }
     }
     
   } // End if not Full wing
@@ -607,7 +611,7 @@ module wing_main()
      }
   } // End 1st intersection
     if(winglet_mode)
-    {
+    {   
         Create_winglet();      
     }  
   
@@ -938,7 +942,5 @@ else
         }
     }
 }
-
-
 
     
