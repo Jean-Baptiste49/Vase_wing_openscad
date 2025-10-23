@@ -92,10 +92,9 @@ module CreateAileronVoid() {
         
 }
 
-
+// This function withdraw from intern ribs pin hole and command pin hole to avoid conflict between ribs and this spaces during vase print.
 module Ailerons_pin_void(){
 
-    void_offset_command_ailerons = 1.3;
 
     all_pts = get_trailing_edge_points();
 
@@ -138,8 +137,8 @@ module Ailerons_pin_void(){
     
     
            
-        union(){    
-            // Pin hole 
+        union(){  
+            // We withdraw the pin hole to the aileron to avoid conflict with ribs  
             translate([
             full_pts[len(full_pts) - 1][0] - aileron_dist_LE_pin_center,        
             full_pts[len(full_pts) - 1][1] + y_offset_aileron_to_wing/2,  
@@ -147,13 +146,13 @@ module Ailerons_pin_void(){
             
             rotate([ 0, sweep_angle_aileron, 0 ]){ //Spar angle rotation to follow the sweep
 
-            cylinder(h = aileron_pin_hole_length, r = aileron_pin_hole_diameter/2, center = true);
+            cylinder(h = aileron_pin_hole_length*void_offset_pin_hole_ailerons, r =void_offset_pin_hole_ailerons * aileron_pin_hole_diameter/2, center = true);
             
             //cube use for access from extern layer to pin hole in vase mode
             //We use a side to join pin either extern mid and aileron layer cf rotate 90
             rotate([ 0, 0, 90 ])
-                translate([ 0, 0, -aileron_pin_hole_length/2 ])
-                    cube([ aileron_thickness, slice_gap_width, aileron_pin_hole_length ]);
+                translate([ 0, 0, -aileron_pin_hole_length*void_offset_pin_hole_ailerons/2 ])
+                    cube([ aileron_thickness, slice_gap_width, aileron_pin_hole_length*void_offset_pin_hole_ailerons ]);
             }
          
       

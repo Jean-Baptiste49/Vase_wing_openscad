@@ -21,14 +21,10 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 // TODO 
 // Adjust arm size
 
-
-
 // Main stage :
 // Longerons insertiin main stage + long
 // Longerons axe x ?
 // Faire surépaisseur main stage longerons
-
-// Get the part ready to draw 
 
 
 // Add written CG on arm or fuselage
@@ -37,8 +33,8 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 // Emprunte servo fit 
 
 //Later :
-// Ailerons module clean and fix little bug on command pin
-// Ribs conflict with ailerons pin + pi attach both sides ?
+// Ailerons pin attach both sides 
+// Ailerons module clean
 // Try on Orca and add printer conf in git
 // Readme and clean and comment function with parameters description
 // Structure Grid Mode 1 Adapat ? 
@@ -57,7 +53,7 @@ Right_side = false;
 
 Aileron_part = false;
 Root_part = false;
-Mid_part = false;
+Mid_part = true;
 Tip_part = false;
 Mid_Tip_part = false;
 Motor_arm_full = false;
@@ -103,7 +99,7 @@ wing_tip_mm = wing_mm - wing_root_mm - wing_mid_mm - motor_arm_width;
 echo("Wing_tip_mm = ", wing_tip_mm);
 AC_CG_margin = 10; //Margin between mean aerodynamic center and gravity center in pourcentage
 aerodyn_center_plot = false; //Black
-gravity_center_plot = true; //Green
+gravity_center_plot = false; //Green
 //******//
 
 
@@ -241,7 +237,8 @@ aileron_command_pin_x_offset = 3;
 y_offset_aileron_to_wing = 0.6;
 aileron_dist_LE_command_center = aileron_thickness - aileron_command_pin_width - aileron_command_pin_b_radius - aileron_command_pin_x_offset;
 aileron_dist_LE_pin_center = aileron_thickness;// - aileron_command_pin_b_radius - aileron_command_pin_x_offset;
-
+void_offset_command_ailerons = 1.3; // Use this offset for ribs to pin command conflict in vase. It will make a hole in ribs around the pin command void
+void_offset_pin_hole_ailerons = 2.5; // Use this offset for ribs to pin conflict in vase. It will make a hole in ribs around the pin void
 //******//
 
 
@@ -356,6 +353,7 @@ module wing_main()
                                     }
                                     if(create_aileron)
                                     {
+                                        // This function withdraw from intern ribs pin hole and command pin hole to avoid conflict between ribs and this spaces during vase print.
                                         Ailerons_pin_void();
                                     }
                                     if(winglet_mode)
@@ -527,6 +525,7 @@ module wing_main()
                                     }
                                     if(create_aileron)
                                     {
+                                    // This function withdraw from intern ribs pin hole and command pin hole to avoid conflict between ribs and this spaces during vase print.
                                         Ailerons_pin_void();
                                     }
                                     if(winglet_mode)
@@ -958,7 +957,6 @@ else
         }
     }
 }
-
 
 
 
