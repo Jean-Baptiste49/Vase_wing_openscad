@@ -30,12 +30,11 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 
 
 // TODO 
-// Taille batterie
-// Rear motor attach Center part + diminuer size
+// Center part do grid to remove material
+// Probleme pin hole ailerons and attach winglet too small
 
 
 // Print :
-// Print tip and arm
 // Trou arm test
 // Emprunte servo fit 
 
@@ -60,7 +59,7 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 Left_side = true;
 Right_side = false;
 
-Aileron_part = true;
+Aileron_part = false;
 Root_part = false;
 Mid_part = false;
 Tip_part = false;
@@ -68,9 +67,9 @@ Mid_Tip_part = false;
 Motor_arm_full = false;
 Motor_arm_front = false;
 Motor_arm_back = false;
-Center_part = false;
+Center_part = true;
 
-Full_system = true;
+Full_system = false;
 
 //****************Wing Airfoil settings**********//
 wing_sections = Full_system?10:20; // how many sections : more is higher resolution but higher processing. We decrease wing_sections for Full_system because it's too much elements just for display
@@ -113,7 +112,7 @@ gravity_center_plot = false; //Green
 
 
 //**************** Fuselage and center part **********//
-center_width = 100;
+center_width = 70;
 center_length = 220;
 center_height = 12;
 //******//
@@ -963,4 +962,5 @@ else
     }
 }
 
-//Create_winglet();     
+
+

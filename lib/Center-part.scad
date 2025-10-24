@@ -10,7 +10,7 @@ tawaki_pin_height = 10;
 tawaki_pin_space_length = 30.2;
 tawaki_pin_space_width = 30.2;
 
-tawaki_esc_space = 100 + tawaki_pin_space_length;
+tawaki_esc_space = 90 + tawaki_pin_space_length;
 
 esc_int_pin_rad = 1.25;
 esc_ext_pin_rad = 3.15;
@@ -27,12 +27,90 @@ battery_width = 50;
 battery_hole_width = 8;
 battery_hole_length = 25;
 battery_x_pos_1 = 100;
-battery_x_pos_2 = 180;
+battery_x_pos_2 = 160;
 
 rear_motor_int_circle_r = 4.75;
+rear_motor_int_circ_attach_r = 1.5;
+rear_motor_int_circ_attach_dist_to_ct = 8 + rear_motor_int_circ_attach_r;
+rear_motor_square_support_attach_length = 32;
+rear_motor_square_support_attach_width = 4;
 
-                    
-                
+
+
+
+
+
+
+
+
+//**** Rear Motor Attach ****//
+translate([ct_length - rear_motor_square_support_attach_width,main_stage_y_width,-ct_width/2+ rear_motor_square_support_attach_length/2])
+    rotate([0,180,0])
+    linear_extrude(height = rear_motor_square_support_attach_width)
+    polygon(points=[[0, 0], [0, rear_motor_square_support_attach_length], [rear_motor_square_support_attach_length, 0]]);
+
+translate([ct_length - rear_motor_square_support_attach_width,main_stage_y_width,-ct_width/2- rear_motor_square_support_attach_length/2+rear_motor_square_support_attach_width])
+    rotate([0,180,0])
+    linear_extrude(height = rear_motor_square_support_attach_width)
+    polygon(points=[[0, 0], [0, rear_motor_square_support_attach_length], [rear_motor_square_support_attach_length, 0]]);
+
+    
+
+translate([ct_length - rear_motor_square_support_attach_width,main_stage_y_width + rear_motor_square_support_attach_length/2,-ct_width/2])
+    rotate([0,90,0])
+difference(){
+    linear_extrude(rear_motor_square_support_attach_width)
+/*        offset(r=radius)
+        offset(delta=-radius)*/
+        square([rear_motor_square_support_attach_length, rear_motor_square_support_attach_length], center=true);
+        
+    linear_extrude(rear_motor_square_support_attach_width){
+    circle(r = rear_motor_int_circle_r); //hole for rear motor tree passage
+
+    translate([rear_motor_int_circ_attach_dist_to_ct,0,0]){//Hole for screwing the rear motor
+        translate([-rear_motor_int_circ_attach_r,0,0]) 
+        circle(r = rear_motor_int_circ_attach_r);     
+        translate([rear_motor_int_circ_attach_r,0,0]) 
+        circle(r = rear_motor_int_circ_attach_r);       
+        square([2*rear_motor_int_circ_attach_r, 2*rear_motor_int_circ_attach_r], center=true);
+    }     
+               
+    translate([-rear_motor_int_circ_attach_dist_to_ct,0,0]){//Hole for screwing the rear motor
+        translate([-rear_motor_int_circ_attach_r,0,0]) 
+        circle(r = rear_motor_int_circ_attach_r);     
+        translate([rear_motor_int_circ_attach_r,0,0]) 
+        circle(r = rear_motor_int_circ_attach_r);       
+        square([2*rear_motor_int_circ_attach_r, 2*rear_motor_int_circ_attach_r], center=true);
+    }         
+     
+    translate([0,rear_motor_int_circ_attach_dist_to_ct,0]){//Hole for screwing the rear motor
+        rotate([0,0,90]){
+            translate([-rear_motor_int_circ_attach_r,0,0]) 
+            circle(r = rear_motor_int_circ_attach_r);     
+            translate([rear_motor_int_circ_attach_r,0,0]) 
+            circle(r = rear_motor_int_circ_attach_r);       
+            square([2*rear_motor_int_circ_attach_r, 2*rear_motor_int_circ_attach_r], center=true);
+        }
+    }   
+
+    translate([0,-rear_motor_int_circ_attach_dist_to_ct,0]){//Hole for screwing the rear motor
+        rotate([0,0,90]){
+            translate([-rear_motor_int_circ_attach_r,0,0]) 
+            circle(r = rear_motor_int_circ_attach_r);     
+            translate([rear_motor_int_circ_attach_r,0,0]) 
+            circle(r = rear_motor_int_circ_attach_r);       
+            square([2*rear_motor_int_circ_attach_r, 2*rear_motor_int_circ_attach_r], center=true);
+        }
+    }  
+
+    }// End of Linear Extrude
+} // End of difference
+
+//**** End Rear Motor Attach ****//
+
+
+
+ 
     difference(){
     union(){
         //Main stage support definition
@@ -144,4 +222,4 @@ rear_motor_int_circle_r = 4.75;
                     cylinder(h = esc_pin_height, r = esc_ext_pin_rad, center = false);
                     cylinder(h = esc_pin_height, r = esc_int_pin_rad, center = false);
                 }                
-}
+}    
