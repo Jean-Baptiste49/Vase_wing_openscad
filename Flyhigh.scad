@@ -10,7 +10,11 @@
 
 
 // Note Printer 
-// No support in motor arm spar holes
+// 1- No support in motor arm spar holes
+// 2- use PLA Aero user preset to get nice print
+// 3- Bambulab can crash each time you enter a too large model to slice. It can be due to a NVIDIA parameter for bambulab, here is the solution : https://forum.bambulab.com/t/bambu-studio-crashes-after-slicing-solved-nvidia-problem/162392
+// 4- When you import a preset, the import can not work due to version difference. Be carefull to update the version of your printer into the preset document you want to import
+
 
 
 
@@ -26,23 +30,17 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 
 
 // TODO 
-// Rear motor attach Center part
-
-//Test Impression :
-// Root spars ? OK 
-// change ellipse + winglet + grand OK
-// Adjust spar OK
-// Pin hole aileron OK
-
-
-// Add preset impression to git PLA Aero and PETG
 // Taille batterie
+// Rear motor attach Center part + diminuer size
+
+
+// Print :
+// Print tip and arm
 // Trou arm test
 // Emprunte servo fit 
 
 
 //Later :
-// Elliptic
 // Ailerons pin attach both sides 
 // Longerons axe x Main stage
 // Ailerons module clean
@@ -72,7 +70,7 @@ Motor_arm_front = false;
 Motor_arm_back = false;
 Center_part = false;
 
-Full_system = false;
+Full_system = true;
 
 //****************Wing Airfoil settings**********//
 wing_sections = Full_system?10:20; // how many sections : more is higher resolution but higher processing. We decrease wing_sections for Full_system because it's too much elements just for display

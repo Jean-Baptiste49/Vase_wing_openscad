@@ -1,0 +1,54 @@
+{
+    "bottom_shell_layers": "0",
+    "brim_type": "outer_only",
+    "default_acceleration": [
+        "5000"
+    ],
+    "enable_overhang_speed": [
+        "0"
+    ],
+    "from": "User",
+    "gap_infill_speed": [
+        "50"
+    ],
+    "inherits": "0.20mm Standard @BBL X1C",
+    "initial_layer_infill_speed": [
+        "50"
+    ],
+    "inner_wall_speed": [
+        "50"
+    ],
+    "internal_solid_infill_speed": [
+        "50"
+    ],
+    "name": "0.20mm_Standard-PLA_Aero_VaseMode",
+    "outer_wall_acceleration": [
+        "2000"
+    ],
+    "outer_wall_speed": [
+        "50"
+    ],
+    "prime_tower_infill_gap": "100%",
+    "prime_tower_rib_wall": "0",
+    "print_extruder_id": [
+        "1"
+    ],
+    "print_extruder_variant": [
+        "Direct Drive Standard"
+    ],
+    "print_sequence": "by object",
+    "print_settings_id": "0.20mm_Standard-PLA_Aero_VaseMode",
+    "slice_closing_radius": "0",
+    "slicing_mode": "even_odd",
+    "sparse_infill_density": "0%",
+    "sparse_infill_speed": [
+        "50"
+    ],
+    "spiral_mode": "1",
+    "top_shell_layers": "0",
+    "travel_speed": [
+        "250"
+    ],
+    "version": "2.1.0.18",
+    "wall_loops": "1"
+}
