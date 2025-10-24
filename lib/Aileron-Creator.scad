@@ -78,7 +78,7 @@ module CreateAileronVoid() {
         ])
             rotate([ 0, sweep_angle_aileron, 0 ]){ //Spar angle rotation to follow the sweep
 
-            cylinder(h = aileron_pin_hole_length, r = aileron_pin_hole_diameter/2, center = true);
+            cylinder(h = aileron_pin_hole_length, r = ailerons_pin_hole_dilatation_offset * aileron_pin_hole_diameter/2, center = true);
             
             //cube use for access from extern layer to pin hole in vase mode
             //We use a side to join pin either extern mid and aileron layer cf rotate 90
@@ -259,7 +259,7 @@ module CreateAileron() {
             full_pts[len(full_pts) - 1][2]  
         ])
             rotate([ 0, sweep_angle_aileron, 0 ]){ //Spar angle rotation to follow the sweep
-                cylinder(h = aileron_pin_hole_length, r = aileron_pin_hole_diameter/2, center = true);
+                cylinder(h = aileron_pin_hole_length, r = ailerons_pin_hole_dilatation_offset*aileron_pin_hole_diameter/2, center = true);
                 //cube use for access from extern layer to pin hole in vase mode
                 //We use a side to join pin either extern mid and aileron layer cf rotate 90
                 rotate([ 0, 0, 60 ])

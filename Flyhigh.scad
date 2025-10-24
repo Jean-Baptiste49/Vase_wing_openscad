@@ -6,6 +6,13 @@
 
 //Tips
 // 1- If you want to add something into the wing, add a void offset around the part you want to add to avoid conflict with intern ribs during vase print  
+// 2- When spar hole is far from a edge and the vase circuit connection is too long, the system doesnt like and don't draw the spar hole. Use spar_flip_side parameter to orientate the vase circuit connection to the closest edge
+
+
+// Note Printer 
+// No support in motor arm spar holes
+
+
 
 // Wing airfoils
 include <lib/openscad-airfoil/m/mh45.scad>
@@ -22,7 +29,17 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 // Rear motor attach Center part
 
 //Test Impression :
+// Root spars ? OK 
+// change ellipse + winglet + grand OK
+// Adjust spar OK
+// Pin hole aileron OK
+
+
+// Add preset impression to git PLA Aero and PETG
+// Taille batterie
+// Trou arm test
 // Emprunte servo fit 
+
 
 //Later :
 // Elliptic
@@ -45,7 +62,7 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 Left_side = true;
 Right_side = false;
 
-Aileron_part = false;
+Aileron_part = true;
 Root_part = false;
 Mid_part = false;
 Tip_part = false;
@@ -53,9 +70,9 @@ Mid_Tip_part = false;
 Motor_arm_full = false;
 Motor_arm_front = false;
 Motor_arm_back = false;
-Center_part = true;
+Center_part = false;
 
-Full_system = true;
+Full_system = false;
 
 //****************Wing Airfoil settings**********//
 wing_sections = Full_system?10:20; // how many sections : more is higher resolution but higher processing. We decrease wing_sections for Full_system because it's too much elements just for display
@@ -67,7 +84,7 @@ wing_mode = 2; // 1=trapezoidal wing 2= elliptic wing
 center_airfoil_change_perc = 100; // Where you want to change to the center airfoil 100 is off
 tip_airfoil_change_perc = 100;    // Where you want to change to the tip airfoil 100 is off
 slice_transisions = 0; // This is the number of slices that will be a blend of airfoils when airfoil is changed 0 is off
-elliptic_param = 2; //Paramater for surrellipse adjustement. Ellipse = 2. Square tip >2 and Sharp tip <2
+elliptic_param = 3.5; //Paramater for surrellipse adjustement. Ellipse = 2. Square tip >2 and Sharp tip <2
 
 
 //**************** Motor arm **********//
@@ -156,11 +173,36 @@ rib_num = 14;      // Number of ribs
 rib_offset = 3;   // Offset
 //******//
 
+
+
+//**************** Winglet settings **********//
+winglet_mode = true;
+winglet_height = 55;
+winglet_width = 4;
+winglet_rear_up_offset = 75;
+winglet_rear_bottom_offset = 45;
+winglet_y_pos = -3.5;
+winglet_x_pos = 7;
+base_length = 4*wing_root_chord_mm/10;
+corner_radius = 0; 
+    
+attached_1_x_pos = -30;
+attached_1_y_pos = 1.5;
+attached_1_radius = 2.5;
+attached_1_length = 15;
+    
+attached_2_x_pos = -50;
+attached_2_y_pos = 1;
+attached_2_radius = 2.2;
+attached_2_length = 15;
+//******//
+
+
 //**************** Carbon Spar settings **********//
 debug_spar_hole = false;
 spar_num = 3;     // Number of spars for grid mode 2
-spar_length_offset_1 = wing_mm - 50*wing_tip_mm/10;
-spar_length_offset_2 = wing_mm - 25*wing_tip_mm/10;
+spar_length_offset_1 = wing_mm - wing_tip_mm - 2*attached_1_length;
+spar_length_offset_2 = wing_mm - wing_tip_mm - 2*attached_2_length;
 spar_angle_fitting_coeff = 1.15; // Coeff to adjust the spar angle into the wing
 //Spar angle rotation to follow the sweep
 sweep_angle = use_custom_lead_edge_sweep ? atan((spar_angle_fitting_coeff * lead_edge_sweep[len(lead_edge_sweep) - 1][1]) / lead_edge_sweep[len(lead_edge_sweep) - 1][0]) : 0;
@@ -170,15 +212,15 @@ spar_hole_perc = 15; //28;//25;             // Percentage from leading edge
 spar_hole_size = 5.2;//5;              // Size of the spar hole
 spar_hole_length = use_custom_lead_edge_sweep ? spar_length_offset_1/cos(sweep_angle) : spar_length_offset_1; // length of the spar in mm
 spar_hole_offset = 1.8;            // Adjust where the spar is located
-spar_hole_void_clearance = 1; // Clearance for the spar to grid interface(at least double extrusion width is usually needed)
-spar_flip_side_1 = false; // use to offset the spar attached on a side of the wing to the other
+spar_hole_void_clearance = 2; // Clearance for the spar to grid interface(at least double extrusion width is usually needed)
+spar_flip_side_1 = true; // use to offset the spar attached on a side of the wing to the other
 // Second spar
 spar_hole_perc_2 = 37;//45;             // Percentage from leading edge
 spar_hole_size_2 = 5.2;              // Size of the spar hole
 spar_hole_length_2= use_custom_lead_edge_sweep ? spar_length_offset_2/cos(sweep_angle) : spar_length_offset_2; // length of the spar in mm
 spar_hole_offset_2 = 1.2;            // Adjust where the spar is located
-spar_hole_void_clearance_2 = 1; 
-spar_flip_side_2 = false; // use to offset the spar attached on a side of the wing to the other
+spar_hole_void_clearance_2 = 2; 
+spar_flip_side_2 = true; // use to offset the spar attached on a side of the wing to the other
 // third spar
 spar_hole_perc_3 = 78;//81;             // Percentage from leading edge
 spar_hole_size_3 = 5.2;              // Size of the spar hole
@@ -233,29 +275,9 @@ aileron_dist_LE_command_center = aileron_thickness - aileron_command_pin_width -
 aileron_dist_LE_pin_center = aileron_thickness;// - aileron_command_pin_b_radius - aileron_command_pin_x_offset;
 void_offset_command_ailerons = 1.3; // Use this offset for ribs to pin command conflict in vase. It will make a hole in ribs around the pin command void
 void_offset_pin_hole_ailerons = 2.5; // Use this offset for ribs to pin conflict in vase. It will make a hole in ribs around the pin void
+ailerons_pin_hole_dilatation_offset = 1.2; // We use this offset for the dilation of material after print to keep the right dimensions
 //******//
 
-
-//**************** Winglet settings **********//
-winglet_mode = true;
-winglet_height = 35;
-winglet_width = 4;
-winglet_rear_offset = 45;
-winglet_y_pos = -2;
-winglet_x_pos = 7;
-base_length = 4*wing_root_chord_mm/10;
-corner_radius = 0; 
-    
-attached_1_x_pos = -6;
-attached_1_y_pos = 0.5;
-attached_1_radius = 1.5;
-attached_1_length = 15;
-    
-attached_2_x_pos = -13.5;
-attached_2_y_pos = 0.5;
-attached_2_radius = 1;
-attached_2_length = 15;
-//******//
 
 //**************** Other settings **********//
 $fa = 5; // 360deg/5($fa) = 60 facets this affects performance and object shoothness
@@ -943,4 +965,4 @@ else
     }
 }
 
-    
+//Create_winglet();     

@@ -5,10 +5,12 @@ module Create_winglet(cube_for_vase = false)
     points_le = get_leading_edge_points();
     z_pos = wing_root_mm + wing_mid_mm + motor_arm_width;
     manual_rounding = 3;
+    junction_to_mid_hole_offset = 1.2;
     cube_for_vase_y1 = attached_1_radius*10;
     cube_for_vase_z1 = attached_1_length;
     cube_for_vase_y2 = attached_2_radius*10;
     cube_for_vase_z2 = attached_2_length;    
+
     
     
   
@@ -28,8 +30,8 @@ module Create_winglet(cube_for_vase = false)
     module winglet_shape() {
         polygon(points=[
             [0, 0], 
-            [base_length, 0], 
-            [base_length + winglet_rear_offset, winglet_height], 
+            [base_length + winglet_rear_bottom_offset, 0], 
+            [base_length + winglet_rear_up_offset, winglet_height], 
             [2 * base_length / 3, winglet_height]
         ]);
     }
@@ -63,7 +65,7 @@ module Create_winglet(cube_for_vase = false)
                 
                 
     p3 = [pt_start[0]-winglet_x_pos + 2 * base_length / 3, winglet_y_pos+ winglet_height, z_pos];  
-    p4 = [pt_start[0]-winglet_x_pos + base_length+ winglet_rear_offset, winglet_y_pos + winglet_height, z_pos];    
+    p4 = [pt_start[0]-winglet_x_pos + base_length+ winglet_rear_up_offset, winglet_y_pos + winglet_height, z_pos];    
     
     dx2 = p4[0] - p3[0];
     dy2 = p4[1] - p3[1];
@@ -79,13 +81,13 @@ module Create_winglet(cube_for_vase = false)
     }// End of Union
    
     union(){
-        translate([pt_start[0]-winglet_x_pos + 3*manual_rounding/2, winglet_y_pos+manual_rounding/2, z_pos+ winglet_width])
+        translate([pt_start[0]-winglet_x_pos + 2.5*manual_rounding, winglet_y_pos+2*manual_rounding , z_pos+ winglet_width])
             rotate([180,0,0])
                 color("orange") 
-                    cylinder(h = winglet_width, r = manual_rounding, center = false); 
+                    cylinder(h = winglet_width, r = 2.5*manual_rounding, center = false); 
                     
-        translate([pt_start[0]-winglet_x_pos + 3*manual_rounding/2, winglet_y_pos, z_pos])          
-            cube([2*base_length,2*winglet_height,winglet_width]);  
+        translate([pt_start[0]-winglet_x_pos + 6*manual_rounding/2, winglet_y_pos, z_pos])          
+            cube([50*base_length,2*winglet_height,winglet_width]);  
     }// End of Union
     
     }// End of intersection
@@ -94,7 +96,12 @@ module Create_winglet(cube_for_vase = false)
     translate([pt_start[0]-attached_1_x_pos,attached_1_y_pos,z_pos+1]){
         rotate([180,sweep_angle,0])
             color("green") 
-                cylinder(h = attached_1_length, r = attached_1_radius, center = false);
+            if(cube_for_vase){ // In vase mode, we create the hole in the mid part, we therefore offset the hole to avoid too tight junction 
+                cylinder(h = attached_1_length, r = attached_1_radius*junction_to_mid_hole_offset, center = false);
+            }
+            else {
+                 cylinder(h = attached_1_length, r = attached_1_radius, center = false);
+            }
                 
             if(cube_for_vase){
                 rotate([0,sweep_angle,0])
@@ -108,8 +115,13 @@ module Create_winglet(cube_for_vase = false)
     translate([pt_start[0]-attached_2_x_pos,attached_2_y_pos,z_pos + 1]){
         rotate([180,sweep_angle,0])
             color("green") 
-                cylinder(h = attached_2_length, r = attached_2_radius, center = false);
-                
+            if(cube_for_vase){   // In vase mode, we create the hole in the mid part, we therefore offset the hole to avoid too tight junction         
+                cylinder(h = attached_2_length, r = attached_2_radius*junction_to_mid_hole_offset, center = false);
+            }
+            else {
+                 cylinder(h = attached_2_length, r = attached_2_radius, center = false);
+            }
+            
             if(cube_for_vase){
                 rotate([0,sweep_angle,0])    
                     translate([0,0,-cube_for_vase_z2])
