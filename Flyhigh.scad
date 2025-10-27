@@ -30,13 +30,19 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 
 
 // TODO 
+// test spar avec trou et cercle 
 // Center part do grid to remove material
-// Probleme pin hole ailerons and attach winglet too small
+// Ailerons print slower
+
+// Baisser arm motor + encoche servo
+
+// Fixation main center triangle vis
 
 
 // Print :
 // Trou arm test
 // Emprunte servo fit 
+// Probleme pin hole ailerons and attach winglet too small
 
 
 //Later :
@@ -61,15 +67,15 @@ Right_side = false;
 
 Aileron_part = false;
 Root_part = false;
-Mid_part = false;
-Tip_part = false;
+Mid_part = true;
+Tip_part = true;
 Mid_Tip_part = false;
 Motor_arm_full = false;
 Motor_arm_front = false;
 Motor_arm_back = false;
-Center_part = true;
+Center_part = false;
 
-Full_system = false;
+Full_system = true;
 
 //****************Wing Airfoil settings**********//
 wing_sections = Full_system?10:20; // how many sections : more is higher resolution but higher processing. We decrease wing_sections for Full_system because it's too much elements just for display
@@ -112,9 +118,9 @@ gravity_center_plot = false; //Green
 
 
 //**************** Fuselage and center part **********//
-center_width = 70;
-center_length = 220;
-center_height = 12;
+center_width = 55;
+center_length = 210;
+center_height = 8;
 //******//
 
 
@@ -182,6 +188,7 @@ winglet_y_pos = -3.5;
 winglet_x_pos = 7;
 base_length = 4*wing_root_chord_mm/10;
 corner_radius = 0; 
+winglet_attach_dilatation_offset_PLA = 1.05; // We use this offset for the dilation of material after print to keep the right dimensions
     
 attached_1_x_pos = -30;
 attached_1_y_pos = 1.5;
@@ -272,7 +279,8 @@ aileron_dist_LE_command_center = aileron_thickness - aileron_command_pin_width -
 aileron_dist_LE_pin_center = aileron_thickness;// - aileron_command_pin_b_radius - aileron_command_pin_x_offset;
 void_offset_command_ailerons = 1.3; // Use this offset for ribs to pin command conflict in vase. It will make a hole in ribs around the pin command void
 void_offset_pin_hole_ailerons = 2.5; // Use this offset for ribs to pin conflict in vase. It will make a hole in ribs around the pin void
-ailerons_pin_hole_dilatation_offset = 1.2; // We use this offset for the dilation of material after print to keep the right dimensions
+ailerons_pin_hole_dilatation_offset_PLA = 1.2; // We use this offset for the dilation of material after print to keep the right dimensions
+ailerons_pin_hole_dilatation_offset_PETG = 1.5; 
 //******//
 
 
@@ -964,3 +972,98 @@ else
 
 
 
+
+//test();
+module test(){
+
+
+
+radius = 3;         // Radius of rounded corners
+tawaki_int_pin_rad = 1.25;
+tawaki_ext_pin_rad = 2.9;
+tawaki_pin_height = 10;
+tawaki_pin_space_length = 30.2;
+tawaki_pin_space_width = 30.2;
+
+tawaki_esc_space = 90 + tawaki_pin_space_length;
+
+esc_int_pin_rad = 1.25;
+esc_ext_pin_rad = 3.15;
+esc_pin_height = 5;
+esc_pin_space_length = 32;
+esc_pin_space_width = 30.7;
+
+
+
+gravity_line_width = 1;
+gravity_line_height = 0.2;
+
+battery_width = 50;
+battery_hole_width = 8;
+battery_hole_length = 25;
+battery_x_pos_1 = 100;
+battery_x_pos_2 = 160;
+
+rear_motor_int_circle_r = 4.75;
+rear_motor_int_circ_attach_r = 1.5;
+rear_motor_int_circ_attach_dist_to_ct = 8 + rear_motor_int_circ_attach_r;
+rear_motor_square_support_attach_length = 32;
+rear_motor_square_support_attach_width = 4;
+
+
+// === Grid Parameters ===
+front_offset = 5;
+grid_width = 40;
+grid_length = 210;
+slot_width    = 2;     
+slot_spacing  = 10;     
+grid_angle    = 45;    
+mid_x_length = tawaki_esc_space-tawaki_pin_space_length-2*tawaki_ext_pin_rad;
+mid_x_offset = tawaki_pin_space_length+2*tawaki_ext_pin_rad+ mid_x_length/2;
+mid_x_width = center_width;
+rear_x_length = tawaki_esc_space-tawaki_pin_space_length-2*tawaki_ext_pin_rad;
+rear_x_offset = tawaki_pin_space_length+2*tawaki_ext_pin_rad+ mid_x_length/2;
+rear_x_width = center_width;
+ 
+//Front part under Tawaki
+/*translate([front_offset + tawaki_pin_space_length/2,0,-center_width/2])
+rotate([90, 0, 0])
+    difference() {
+        // Principal part
+        cube([tawaki_pin_space_length, tawaki_pin_space_width - 2*tawaki_ext_pin_rad, 2*center_height], center = true);
+
+        // Slot grid
+        rotate([0, 0, grid_angle])
+            for (x = [-grid_length : slot_spacing : grid_length])
+                translate([x, 0, 0])
+                    cube([slot_width, grid_width * 10, 2*center_height], center = true);
+    }*/
+
+//Mid part under Tawaki
+/*translate([mid_x_offset,0,-center_width/2])
+rotate([90, 0, 0])
+    difference() {
+        // Principal part
+        cube([mid_x_length, mid_x_width, 2*center_height], center = true);
+
+        // Slot grid
+        rotate([0, 0, grid_angle])
+            for (x = [-grid_length : slot_spacing : grid_length])
+                translate([x, 0, 0])
+                    cube([slot_width, grid_width * 10, 2*center_height], center = true);
+    }*/
+    
+//Rear part under ESC
+translate([front_offset + tawaki_pin_space_length/2,0,-center_width/2])
+rotate([90, 0, 0])
+    difference() {
+        // Principal part
+        cube([tawaki_pin_space_length, tawaki_pin_space_width - 2*tawaki_ext_pin_rad, 2*center_height], center = true);
+
+        // Slot grid
+        rotate([0, 0, grid_angle])
+            for (x = [-grid_length : slot_spacing : grid_length])
+                translate([x, 0, 0])
+                    cube([slot_width, grid_width * 10, 2*center_height], center = true);
+    }
+}

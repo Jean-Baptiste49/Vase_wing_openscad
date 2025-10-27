@@ -5,7 +5,6 @@ module Create_winglet(cube_for_vase = false)
     points_le = get_leading_edge_points();
     z_pos = wing_root_mm + wing_mid_mm + motor_arm_width;
     manual_rounding = 3;
-    junction_to_mid_hole_offset = 1.2;
     cube_for_vase_y1 = attached_1_radius*10;
     cube_for_vase_z1 = attached_1_length;
     cube_for_vase_y2 = attached_2_radius*10;
@@ -97,7 +96,7 @@ module Create_winglet(cube_for_vase = false)
         rotate([180,sweep_angle,0])
             color("green") 
             if(cube_for_vase){ // In vase mode, we create the hole in the mid part, we therefore offset the hole to avoid too tight junction 
-                cylinder(h = attached_1_length, r = attached_1_radius*junction_to_mid_hole_offset, center = false);
+                cylinder(h = attached_1_length, r = attached_1_radius*winglet_attach_dilatation_offset_PLA, center = false);
             }
             else {
                  cylinder(h = attached_1_length, r = attached_1_radius, center = false);
@@ -116,7 +115,7 @@ module Create_winglet(cube_for_vase = false)
         rotate([180,sweep_angle,0])
             color("green") 
             if(cube_for_vase){   // In vase mode, we create the hole in the mid part, we therefore offset the hole to avoid too tight junction         
-                cylinder(h = attached_2_length, r = attached_2_radius*junction_to_mid_hole_offset, center = false);
+                cylinder(h = attached_2_length, r = attached_2_radius*winglet_attach_dilatation_offset_PLA, center = false);
             }
             else {
                  cylinder(h = attached_2_length, r = attached_2_radius, center = false);
@@ -134,8 +133,7 @@ module Create_winglet(cube_for_vase = false)
 
 module Create_winglet_void()
 {
-  
-    scale_up = 2.0;
+
     points_le = get_leading_edge_points();
     z_pos = wing_root_mm + wing_mid_mm + motor_arm_width;
     manual_rounding = 3;
@@ -159,13 +157,13 @@ module Create_winglet_void()
     translate([pt_start[0]-attached_1_x_pos,attached_1_y_pos,z_pos+1])
         rotate([180,sweep_angle,0])
             color("green") 
-                cylinder(h = attached_1_length*scale_up, r = attached_1_radius*scale_up, center = false);
+                cylinder(h = attached_1_length*winglet_attach_dilatation_offset_PLA, r = attached_1_radius*winglet_attach_dilatation_offset_PLA, center = false);
 
             
     translate([pt_start[0]-attached_2_x_pos,attached_2_y_pos,z_pos+1])
         rotate([180,sweep_angle,0])
             color("green") 
-                cylinder(h = attached_2_length*scale_up, r = attached_2_radius*scale_up, center = false);  
+                cylinder(h = attached_2_length*winglet_attach_dilatation_offset_PLA, r = attached_2_radius*winglet_attach_dilatation_offset_PLA, center = false);  
 
                 
                 

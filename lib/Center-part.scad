@@ -35,13 +35,20 @@ rear_motor_int_circ_attach_dist_to_ct = 8 + rear_motor_int_circ_attach_r;
 rear_motor_square_support_attach_length = 32;
 rear_motor_square_support_attach_width = 4;
 
+// === Grid Parameters ===
+grid_width = 40;
+grid_length = 210;
+slot_width    = 2;     
+slot_spacing  = 10;     
+grid_angle    = 45; 
 
 
 
 
 
 
-
+difference(){ // use for grid
+union(){
 
 //**** Rear Motor Attach ****//
 translate([ct_length - rear_motor_square_support_attach_width,main_stage_y_width,-ct_width/2+ rear_motor_square_support_attach_length/2])
@@ -221,5 +228,26 @@ difference(){
                 difference(){
                     cylinder(h = esc_pin_height, r = esc_ext_pin_rad, center = false);
                     cylinder(h = esc_pin_height, r = esc_int_pin_rad, center = false);
-                }                
+                }   
+   
+}// End of union for grid
+
+//*** Grid Slot ***//
+/*translate([grid_length/2,0,-center_width/2])
+rotate([90, 0, 0])
+    difference() {
+        // Principal part
+        cube([grid_length, grid_width, 2*center_height], center = true);
+
+        // Slot grid
+        rotate([0, 0, grid_angle])
+            for (x = [-grid_length : slot_spacing : grid_length])
+                translate([x, 0, 0])
+                    cube([slot_width, grid_width * 10, 2*center_height], center = true);
+    }
+*/
+}// End of difference for grid
+
+
+   
 }    
