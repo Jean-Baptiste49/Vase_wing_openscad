@@ -1,7 +1,9 @@
 extra_spar_hole_bot_offset=0.2;
 
-module CreateSparHole(sweep_ang, hole_offset, hole_perc, hole_size, hole_length, wing_root_chord, slice_gap, spar_flip_side = false)
+module CreateSparHole(sweep_ang, hole_offset, hole_perc, hole_size, hole_length, wing_root_chord, slice_gap, circles_nb, spar_circle_holder, spar_flip_side = false)
 {
+
+
     //Here we rotate of 180 deg if requested to flip to other side
     flip_side = spar_flip_side ? 180 : 0;
     
@@ -24,7 +26,24 @@ module CreateSparHole(sweep_ang, hole_offset, hole_perc, hole_size, hole_length,
 
         color("red") translate([ hole_perc / 100 * wing_root_chord, 0, 0 ])
             rotate([ 0, sweep_ang, 0 ]) //Spar angle rotation to follow the sweep    
-                cylinder(h = hole_length, r = hole_size / 2);
+                //cylinder(h = hole_length, r = hole_size / 2);
+                //We create a circle with small outer circle to maintain our spar
+                linear_extrude(height = spar_hole_length)
+                    difference(){
+                        circle(r=hole_size / 2);
+                        
+                            union(){
+                                for (i = [0 : 360/circles_nb : 360-360/circles_nb]) {
+                                    rotate([0,0,i])
+                                        translate([hole_size / 2,0,0])
+                                            circle(r=spar_circle_holder); 
+                                }            
+                            } //End of union
+                    } //End of difference                
+                
+                
+                
+                
     }
 }
 
