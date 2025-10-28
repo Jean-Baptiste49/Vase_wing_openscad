@@ -157,13 +157,13 @@ module Create_winglet_void()
     translate([pt_start[0]-attached_1_x_pos,attached_1_y_pos,z_pos+1])
         rotate([180,sweep_angle,0])
             color("green") 
-                cylinder(h = attached_1_length*winglet_attach_dilatation_offset_PLA, r = attached_1_radius*winglet_attach_dilatation_offset_PLA, center = false);
+                cylinder(h = attached_1_length, r = attached_1_radius*winglet_attach_void_clearance, center = false);
 
             
     translate([pt_start[0]-attached_2_x_pos,attached_2_y_pos,z_pos+1])
         rotate([180,sweep_angle,0])
             color("green") 
-                cylinder(h = attached_2_length*winglet_attach_dilatation_offset_PLA, r = attached_2_radius*winglet_attach_dilatation_offset_PLA, center = false);  
+                cylinder(h = attached_2_length, r = attached_2_radius*winglet_attach_void_clearance, center = false);  
 
                 
                 

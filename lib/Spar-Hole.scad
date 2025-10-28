@@ -28,7 +28,7 @@ module CreateSparHole(sweep_ang, hole_offset, hole_perc, hole_size, hole_length,
             rotate([ 0, sweep_ang, 0 ]) //Spar angle rotation to follow the sweep    
                 //cylinder(h = hole_length, r = hole_size / 2);
                 //We create a circle with small outer circle to maintain our spar
-                linear_extrude(height = spar_hole_length)
+                linear_extrude(height = hole_length)
                     difference(){
                         circle(r=hole_size / 2);
                         
@@ -50,6 +50,7 @@ module CreateSparHole(sweep_ang, hole_offset, hole_perc, hole_size, hole_length,
 module CreateSparVoid(sweep_ang, hole_offset, hole_perc, hole_size, hole_length, wing_root_chord, hole_void_clearance, spar_flip_side = false)
 {   
     
+    void_length_offset = 1.02;
     void_width = 100;
     //Here we offset of void width if requested to flip to other side
     flip_side = spar_flip_side ? void_width : 0;
@@ -60,7 +61,7 @@ module CreateSparVoid(sweep_ang, hole_offset, hole_perc, hole_size, hole_length,
         color("blue") 
             translate([ hole_perc / void_width * wing_root_chord, 0, 0 ])
                 rotate([ 0, sweep_ang, 0 ]) //Spar angle rotation to follow the sweep
-                    cylinder(h = hole_length, r = hole_size / 2 + (hole_void_clearance / 2));
+                    cylinder(h = hole_length*void_length_offset, r = hole_size / 2 + (hole_void_clearance / 2));
         
         color("brown") 
             translate([ hole_perc / void_width * wing_root_chord - ((hole_size + hole_void_clearance)/2), -flip_side, 0 ])

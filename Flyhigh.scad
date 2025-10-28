@@ -30,19 +30,20 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 
 
 // TODO 
-// Center part do grid to remove material
-// Baisser arm motor + encoche servo
+// test spar on wing after print --> code correction after check
+// Probleme pin hole ailerons and attach winglet too small --> OK
+// Baisser arm motor + encoche servo and offset --> Print check
+
+
+// Center part do grid to remove material : OK
+// After print test, check if spar don't cut wall OK
 // Ailerons print slower
-
-
 
 // Fixation main center triangle vis
 
+//Clean main with modules
 
-// Print :
-// test spar on wing 
-// Emprunte servo fit 
-// Probleme pin hole ailerons and attach winglet too small
+
 
 
 //Later :
@@ -66,14 +67,14 @@ Left_side = true;
 Right_side = false;
 
 Aileron_part = false;
-Root_part = false;
+Root_part = true;
 Mid_part = false;
 Tip_part = false;
 Mid_Tip_part = false;
 Motor_arm_full = false;
 Motor_arm_front = false;
 Motor_arm_back = false;
-Center_part = true;
+Center_part = false;
 
 Full_system = false;
 
@@ -95,6 +96,7 @@ ellipse_maj_ax = 9;        // ellipse's major axis (rayon z)
 ellipse_min_ax = 13;        // ellipse's minor axis (rayon y)
 motor_arm_length_front = 170;        // Tube length z
 motor_arm_length_back = 210;        // Tube length z
+motor_arm_y_offset = 3;   //Offset on Y axis
 motor_arm_height = 19;      // Height of motor arm
 motor_arm_tilt_angle  = 20; // Tilt angle of motor arm
 motor_arm_screw_fit_offset = 2; // Offset to adjust screw position after rotation
@@ -188,17 +190,18 @@ winglet_y_pos = -3.5;
 winglet_x_pos = 7;
 base_length = 4*wing_root_chord_mm/10;
 corner_radius = 0; 
-winglet_attach_dilatation_offset_PLA = 1.05; // We use this offset for the dilation of material after print to keep the right dimensions
+winglet_attach_dilatation_offset_PLA = 1.01;// We use this offset for the dilation of material after print to keep the right dimensions
+winglet_attach_void_clearance = 1.3; // We use this offset to create void in the ribs structure
     
 attached_1_x_pos = -30;
 attached_1_y_pos = 1.5;
 attached_1_radius = 2.5;
-attached_1_length = 15;
+attached_1_length = 30;
     
 attached_2_x_pos = -50;
 attached_2_y_pos = 1;
 attached_2_radius = 2.2;
-attached_2_length = 15;
+attached_2_length = 30;
 //******//
 
 
@@ -213,28 +216,29 @@ sweep_angle = use_custom_lead_edge_sweep ? atan((spar_angle_fitting_coeff * lead
 
 spar_hole = true;                // Add a spar hole into the wing
 spar_hole_perc = 15; //28;//25;             // Percentage from leading edge
-spar_hole_size = 5.2;//5;              // Size of the spar hole
+spar_hole_size = 5.6;//5;              // Size of the spar hole
 spar_hole_length = use_custom_lead_edge_sweep ? spar_length_offset_1/cos(sweep_angle) : spar_length_offset_1; // length of the spar in mm
 spar_hole_offset = 1.8;            // Adjust where the spar is located
 spar_hole_void_clearance = 2; // Clearance for the spar to grid interface(at least double extrusion width is usually needed)
 spar_flip_side_1 = true; // use to offset the spar attached on a side of the wing to the other
 // Second spar
 spar_hole_perc_2 = 37;//45;             // Percentage from leading edge
-spar_hole_size_2 = 5.2;              // Size of the spar hole
+spar_hole_size_2 = 5.6;              // Size of the spar hole
 spar_hole_length_2= use_custom_lead_edge_sweep ? spar_length_offset_2/cos(sweep_angle) : spar_length_offset_2; // length of the spar in mm
 spar_hole_offset_2 = 1.2;            // Adjust where the spar is located
 spar_hole_void_clearance_2 = 2; 
 spar_flip_side_2 = true; // use to offset the spar attached on a side of the wing to the other
 // third spar
-spar_hole_perc_3 = 78;//81;             // Percentage from leading edge
-spar_hole_size_3 = 5.2;              // Size of the spar hole
+spar_hole_perc_3 = 75;//81;             // Percentage from leading edge
+spar_hole_size_3 = 5.6;              // Size of the spar hole (5.7 too large, 5.5 too tight)
 spar_hole_length_3= 31 + motor_arm_width + wing_root_mm;// length of the spar in mm
-spar_hole_offset_3 = 1.0;            // Adjust where the spar is located
+spar_hole_offset_3 = 1.2;            // Adjust where the spar is located
 spar_hole_void_clearance_3 = 2;//1; 
 spar_flip_side_3 = true; // use to offset the spar attached on a side of the wing to the other
-sweep_angle_3rd_spar = 2.0*sweep_angle/3;
+sweep_angle_3rd_spar = 2.04*sweep_angle/3;
 spar_circles_nb = 12; //Number of outer circle around spar to maintain the part
-spar_circle_holder = 0.25; //radius of outer circle around spar to maintain the part
+spar_circle_holder = 0.27; //radius of outer circle around spar to maintain the part 0.25 too large and 0.30 too tight
+
 //******//
 
 
@@ -282,7 +286,7 @@ aileron_dist_LE_pin_center = aileron_thickness;// - aileron_command_pin_b_radius
 void_offset_command_ailerons = 1.3; // Use this offset for ribs to pin command conflict in vase. It will make a hole in ribs around the pin command void
 void_offset_pin_hole_ailerons = 2.5; // Use this offset for ribs to pin conflict in vase. It will make a hole in ribs around the pin void
 ailerons_pin_hole_dilatation_offset_PLA = 1.2; // We use this offset for the dilation of material after print to keep the right dimensions
-ailerons_pin_hole_dilatation_offset_PETG = 1.5; 
+ailerons_pin_hole_dilatation_offset_PETG = 1.3; 
 //******//
 
 
@@ -462,11 +466,15 @@ module wing_main()
   if(Root_part) {
     translate([-1000, -1000, 0])
     cube([2000, 2000, wing_root_mm]); 
-    //cube([2000, 2000, wing_root_mm/5]); 
+    //cube([2000, 2000, wing_root_mm/8]); 
   }  
   if(Mid_part) {
     translate([-1000, -1000, wing_root_mm + motor_arm_width])
     cube([2000, 2000, wing_mid_mm]); 
+    //translate([-1000, -1000, wing_root_mm + motor_arm_width + 9*wing_mid_mm/10])
+    //cube([2000, 2000, wing_mid_mm/10]); 
+    //translate([-1000, -1000, wing_root_mm + motor_arm_width])
+    //cube([2000, 2000, wing_mid_mm/10]);     
   }  
   if(Tip_part) {
     if(winglet_mode) // No intersection with anything
@@ -789,7 +797,7 @@ module motor_arm_main(aero_grav_center){
     
         if(Motor_arm_full || Motor_arm_front || Motor_arm_back || Full_system){
         difference(){
-        motor_arm(ellipse_maj_ax, ellipse_min_ax, motor_arm_length_front, motor_arm_length_back, motor_arm_height, motor_arm_tilt_angle, motor_arm_screw_fit_offset, aero_grav_center, motor_arm_grav_center_offset, back =Motor_arm_back, front = Motor_arm_front, full = Motor_arm_full);
+        motor_arm(ellipse_maj_ax, ellipse_min_ax, motor_arm_length_front, motor_arm_length_back, motor_arm_height, motor_arm_tilt_angle, motor_arm_screw_fit_offset, aero_grav_center, motor_arm_grav_center_offset, motor_arm_y_offset, back =Motor_arm_back, front = Motor_arm_front, full = Motor_arm_full);
             union(){
                         CreateSparHole(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, slice_gap_width, spar_circles_nb, spar_circle_holder, spar_flip_side_1);
                         CreateSparHole(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, slice_gap_width, spar_circles_nb, spar_circle_holder, spar_flip_side_2);

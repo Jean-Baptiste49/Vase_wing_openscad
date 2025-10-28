@@ -228,7 +228,7 @@ module Servo4 ()
 
 module Servo4Void () 
 {
-    void_offset = 1.1;
+    void_offset = 1; //1.1; To be validated
     
     all_pts = get_trailing_edge_points();
  

@@ -1,8 +1,7 @@
-module motor_arm(a_ellipse, b_ellipse, arm_length_front, arm_length_back, motor_height, arm_tilt_angle, arm_screw_fit_offset, aero_grav_center, grav_center_offset, back = false, front = false, full = true) {
+module motor_arm(a_ellipse, b_ellipse, arm_length_front, arm_length_back, motor_height, arm_tilt_angle, arm_screw_fit_offset, aero_grav_center, grav_center_offset, y_offset, back = false, front = false, full = true) {
    
     
     //**************** Parameters **********//
-    y_offset = 10;
     trim_plan_dim = 100;
     screw_hole_motor_arm_offset = 3.7;
     screw_hole_1 = 3;
