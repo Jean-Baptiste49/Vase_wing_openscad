@@ -65,9 +65,9 @@ Tip_part = false;
 Mid_Tip_part = false;
 Motor_arm_full = false;
 Motor_arm_front = false;
-Motor_arm_back = false;
-Center_part = true;
-Center_part_locker = true; // Need to activate Center_part as well
+Motor_arm_back = true;
+Center_part = false;
+Center_part_locker = false; // Need to activate Center_part as well
 
 Full_system = false;
 
@@ -238,7 +238,7 @@ spar_circle_holder = 0.27; //radius of outer circle around spar to maintain the 
 
 
 //**************** Servo settings **********//  
-servo_dimension_perso = [24,9,27]; 
+servo_dimension_perso = [24,9,27.5]; 
 all_pts_servo = get_trailing_edge_points();
 pt_start_servo = find_interpolated_point(wing_root_mm - 0, all_pts_servo);
 
@@ -973,4 +973,5 @@ else
         }
     }
 }
+
 
