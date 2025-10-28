@@ -16,7 +16,7 @@ module CreateSparHole(sweep_ang, hole_offset, hole_perc, hole_size, hole_length,
                     rotate([ 0, sweep_ang, 0 ]) //Spar angle rotation to follow the sweep 
                         rotate([ 0, 0, flip_side ]) //rotation to flip from on side to the other with 
                             //cube([ slice_gap, 50, hole_length + 10 ]);
-                            cube([ slice_gap, 50, hole_length +1 ]);
+                            cube([ slice_gap, 50, hole_length ]);
 
             color("green")
                 translate([ -5, hole_size / 2, hole_length ]) rotate([ 35, 0, 0 ]) 
@@ -50,8 +50,9 @@ module CreateSparHole(sweep_ang, hole_offset, hole_perc, hole_size, hole_length,
 module CreateSparVoid(sweep_ang, hole_offset, hole_perc, hole_size, hole_length, wing_root_chord, hole_void_clearance, spar_flip_side = false)
 {   
     
-    void_length_offset = 1.02;
+    void_length_offset = 1.05;
     void_width = 100;
+    offset_to_bottom = 5;
     //Here we offset of void width if requested to flip to other side
     flip_side = spar_flip_side ? void_width : 0;
     
@@ -61,7 +62,8 @@ module CreateSparVoid(sweep_ang, hole_offset, hole_perc, hole_size, hole_length,
         color("blue") 
             translate([ hole_perc / void_width * wing_root_chord, 0, 0 ])
                 rotate([ 0, sweep_ang, 0 ]) //Spar angle rotation to follow the sweep
-                    cylinder(h = hole_length*void_length_offset, r = hole_size / 2 + (hole_void_clearance / 2));
+                    translate([ 0, 0, -offset_to_bottom ])// We offset in direction to bottom to compensate the rotation when applying a sweep angle. It's a margin
+                        cylinder(h = hole_length*void_length_offset, r = hole_size / 2 + (hole_void_clearance / 2));
         
         color("brown") 
             translate([ hole_perc / void_width * wing_root_chord - ((hole_size + hole_void_clearance)/2), -flip_side, 0 ])

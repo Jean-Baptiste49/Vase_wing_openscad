@@ -1,4 +1,4 @@
-module center_part(aero_grav_center, ct_width, ct_length, ct_height){    
+module center_part(aero_grav_center, ct_width, ct_length, ct_height, rear_spar_locker = false){    
 
 
  
@@ -35,6 +35,9 @@ rear_motor_int_circ_attach_dist_to_ct = 8 + rear_motor_int_circ_attach_r;
 rear_motor_square_support_attach_length = 32;
 rear_motor_square_support_attach_width = 4;
 
+main_part_rear_spar_screw_radius = 1.13;
+
+
 // === Grid Parameters ===
 // === Grid Parameters ===
 front_offset = 5;
@@ -55,31 +58,110 @@ rear_x_width = ct_width - 15;
 
 
 
-
-    //**** Rear Motor Attach ****//
-    rear_motor_attach();
-
-    difference(){ //Difference for battery holder   
+    if(rear_spar_locker == false) {
     
-    difference(){ //Difference for the grid   
+        //**** Rear Motor Attach ****//
+        rear_motor_attach();
+
+        difference(){ //Difference for rear spar removal
+        union() {
+        
+        difference(){ //Difference for battery holder   
+        
+        difference(){ //Difference for the grid   
+            main_stage_and_gravity_line();
+            grid_center_part();
+        
+        } // End Difference for the grid   
+         
+        void_battery_holder();
+        }// End of Difference for battery holder 
+                   
+        //*** Tawaki ***//
+        tawaki_pin_support();
+        
+        //*** ESC ***//
+        esc_pin_support();
+        }
+        //*** Rear Spar removal ***//    
+        rear_spar_main_stage_removal(rear_spar_locker);
+        
+
+        } //End of Difference for rear spar removal
+        
+    } // End if
+
+    else if (rear_spar_locker){
+
+        intersection(){ //Difference for rear spar removal
+        difference(){ //Difference for rear spar removal
+        union() {
+        
+        difference(){ //Difference for battery holder   
+         
         main_stage_and_gravity_line();
-        grid_center_part();
-    
-    } // End Difference for the grid   
-     
-    void_battery_holder();
-    }// End of Difference for battery holder 
-               
-    //*** Tawaki ***//
-    tawaki_pin_support();
-    
-    //*** ESC ***//
-    esc_pin_support();
+            
+        void_battery_holder();
+        }// End of Difference for battery holder 
 
+        
+        //*** ESC ***//
+        esc_pin_support();
+        }
+        
+        //*** Rear Spar removal ***//
+        rear_spar_main_stage_removal(rear_spar_locker); 
+        } //End of Difference for rear spar removal  
+        
+        //*** Rear Spar locker ***//
+        rear_spar_locker_module(); 
+
+        } //End of intersection for rear spar removal
+    
+    
+
+    } // End else if
+    
    
    
    
    
+   
+ 
+module rear_spar_locker_module(){
+
+        translate([tawaki_esc_space, 3*ct_height+main_stage_y_width-ct_height/2,-ct_width])
+            rotate([90,0,0])
+                cube([esc_pin_space_length, ct_width,3*ct_height]);
+
+} 
+  
+module rear_spar_main_stage_removal(rear_spar_locker_mode){
+
+
+    if(rear_spar_locker_mode ==false) {
+        translate([tawaki_esc_space, 3*ct_height+main_stage_y_width-ct_height/2,-ct_width])
+            rotate([90,0,0])
+                cube([esc_pin_space_length, ct_width,3*ct_height]);
+     }
+
+
+        translate([tawaki_esc_space+2*esc_ext_pin_rad, 0,-ct_width/2+esc_pin_space_width/2 + 2*esc_ext_pin_rad])
+            rotate([90,0,0])
+                cylinder(h = 6*ct_height, r = main_part_rear_spar_screw_radius, center = true);
+                            
+        translate([tawaki_esc_space+2*esc_ext_pin_rad, 0,-ct_width/2-esc_pin_space_width/2 - 2*esc_ext_pin_rad])
+            rotate([90,0,0])
+                cylinder(h = 6*ct_height, r = main_part_rear_spar_screw_radius, center = true);
+
+        translate([tawaki_esc_space + esc_pin_space_width-esc_ext_pin_rad , 0,-ct_width/2+esc_pin_space_width/2 + 2*esc_ext_pin_rad])
+            rotate([90,0,0])
+                cylinder(h = 6*ct_height, r = main_part_rear_spar_screw_radius, center = true);   
+   
+        translate([tawaki_esc_space + esc_pin_space_width-esc_ext_pin_rad, 0,-ct_width/2-esc_pin_space_width/2 - 2*esc_ext_pin_rad])
+            rotate([90,0,0])
+                cylinder(h = 6*ct_height, r = main_part_rear_spar_screw_radius, center = true);   
+}   
  
    
   

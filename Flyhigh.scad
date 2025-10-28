@@ -30,18 +30,10 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 
 
 // TODO 
-// test spar on wing after print --> code correction after check
-// Probleme pin hole ailerons and attach winglet too small --> OK
+// Ailerons print slower
 // Baisser arm motor + encoche servo and offset --> Print check
 
-
-// Center part do grid to remove material : OK
-// After print test, check if spar don't cut wall OK
-// Ailerons print slower
-
-// Fixation main center triangle vis
-
-//Clean main with modules
+// Clean main with modules
 
 
 
@@ -67,14 +59,15 @@ Left_side = true;
 Right_side = false;
 
 Aileron_part = false;
-Root_part = true;
+Root_part = false;
 Mid_part = false;
 Tip_part = false;
 Mid_Tip_part = false;
 Motor_arm_full = false;
 Motor_arm_front = false;
 Motor_arm_back = false;
-Center_part = false;
+Center_part = true;
+Center_part_locker = true; // Need to activate Center_part as well
 
 Full_system = false;
 
@@ -215,25 +208,25 @@ spar_angle_fitting_coeff = 1.15; // Coeff to adjust the spar angle into the wing
 sweep_angle = use_custom_lead_edge_sweep ? atan((spar_angle_fitting_coeff * lead_edge_sweep[len(lead_edge_sweep) - 1][1]) / lead_edge_sweep[len(lead_edge_sweep) - 1][0]) : 0;
 
 spar_hole = true;                // Add a spar hole into the wing
-spar_hole_perc = 15; //28;//25;             // Percentage from leading edge
-spar_hole_size = 5.6;//5;              // Size of the spar hole
+spar_hole_perc = 15;             // Percentage from leading edge
+spar_hole_size = 5.6;              // Size of the spar hole
 spar_hole_length = use_custom_lead_edge_sweep ? spar_length_offset_1/cos(sweep_angle) : spar_length_offset_1; // length of the spar in mm
 spar_hole_offset = 1.8;            // Adjust where the spar is located
 spar_hole_void_clearance = 2; // Clearance for the spar to grid interface(at least double extrusion width is usually needed)
 spar_flip_side_1 = true; // use to offset the spar attached on a side of the wing to the other
 // Second spar
-spar_hole_perc_2 = 37;//45;             // Percentage from leading edge
+spar_hole_perc_2 = 37;             // Percentage from leading edge
 spar_hole_size_2 = 5.6;              // Size of the spar hole
 spar_hole_length_2= use_custom_lead_edge_sweep ? spar_length_offset_2/cos(sweep_angle) : spar_length_offset_2; // length of the spar in mm
 spar_hole_offset_2 = 1.2;            // Adjust where the spar is located
 spar_hole_void_clearance_2 = 2; 
 spar_flip_side_2 = true; // use to offset the spar attached on a side of the wing to the other
 // third spar
-spar_hole_perc_3 = 75;//81;             // Percentage from leading edge
+spar_hole_perc_3 = 75;             // Percentage from leading edge
 spar_hole_size_3 = 5.6;              // Size of the spar hole (5.7 too large, 5.5 too tight)
 spar_hole_length_3= 31 + motor_arm_width + wing_root_mm;// length of the spar in mm
 spar_hole_offset_3 = 1.2;            // Adjust where the spar is located
-spar_hole_void_clearance_3 = 2;//1; 
+spar_hole_void_clearance_3 = 2;
 spar_flip_side_3 = true; // use to offset the spar attached on a side of the wing to the other
 sweep_angle_3rd_spar = 2.04*sweep_angle/3;
 spar_circles_nb = 12; //Number of outer circle around spar to maintain the part
@@ -845,13 +838,13 @@ module motor_arm_main(aero_grav_center){
 
 
 
-module center_part_main(aero_grav_center, ct_width, ct_length, ct_height){  
+module center_part_main(aero_grav_center, ct_width, ct_length, ct_height, rear_spar_locker){  
 
 
     if(Center_part){
     
         difference(){    
-            center_part(aero_grav_center, ct_width, ct_length, ct_height);
+            center_part(aero_grav_center, ct_width, ct_length, ct_height, rear_spar_locker);
   
             union(){
             CreateSparHole(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, slice_gap_width, spar_circles_nb, spar_circle_holder, spar_flip_side_1);
@@ -929,7 +922,7 @@ else
 
     
     //**************** Center part **********//
-    center_part_main(aero_grav_center, center_width, center_length, center_height);
+    center_part_main(aero_grav_center, center_width, center_length, center_height, Center_part_locker);
     
     
     
@@ -981,104 +974,3 @@ else
     }
 }
 
-
-
-
-
-
-
-
-//test();
-module test(){
-
-
-
-radius = 3;         // Radius of rounded corners
-tawaki_int_pin_rad = 1.25;
-tawaki_ext_pin_rad = 2.9;
-tawaki_pin_height = 10;
-tawaki_pin_space_length = 30.2;
-tawaki_pin_space_width = 30.2;
-
-tawaki_esc_space = 90 + tawaki_pin_space_length;
-
-esc_int_pin_rad = 1.25;
-esc_ext_pin_rad = 3.15;
-esc_pin_height = 5;
-esc_pin_space_length = 32;
-esc_pin_space_width = 30.7;
-
-
-
-gravity_line_width = 1;
-gravity_line_height = 0.2;
-
-battery_width = 50;
-battery_hole_width = 8;
-battery_hole_length = 25;
-battery_x_pos_1 = 100;
-battery_x_pos_2 = 160;
-
-rear_motor_int_circle_r = 4.75;
-rear_motor_int_circ_attach_r = 1.5;
-rear_motor_int_circ_attach_dist_to_ct = 8 + rear_motor_int_circ_attach_r;
-rear_motor_square_support_attach_length = 32;
-rear_motor_square_support_attach_width = 4;
-
-
-// === Grid Parameters ===
-front_offset = 5;
-grid_width = 40;
-grid_length = 210;
-slot_width    = 2;     
-slot_spacing  = 10;     
-grid_angle    = 45;    
-mid_x_length = tawaki_esc_space-tawaki_pin_space_length-2*tawaki_ext_pin_rad;
-mid_x_offset = tawaki_pin_space_length+2*tawaki_ext_pin_rad+ mid_x_length/2;
-mid_x_width = center_width - 15;
-rear_x_length = rear_motor_square_support_attach_length;
-rear_x_offset = tawaki_pin_space_length+2*tawaki_ext_pin_rad+ rear_x_length/2 + tawaki_esc_space + esc_ext_pin_rad;
-rear_x_width = center_width - 15;
- 
-//Front part under Tawaki
-translate([front_offset + tawaki_pin_space_length/2,0,-center_width/2])
-rotate([90, 0, 0])
-    difference() {
-        // Principal part
-        cube([tawaki_pin_space_length, tawaki_pin_space_width - 2*tawaki_ext_pin_rad, 2*center_height], center = true);
-
-        // Slot grid
-        rotate([0, 0, grid_angle])
-            for (x = [-grid_length : slot_spacing : grid_length])
-                translate([x, 0, 0])
-                    cube([slot_width, grid_width * 10, 2*center_height], center = true);
-    }
-
-//Mid part under Tawaki
-translate([mid_x_offset,0,-center_width/2])
-rotate([90, 0, 0])
-    difference() {
-        // Principal part
-        cube([mid_x_length, mid_x_width, 2*center_height], center = true);
-
-        // Slot grid
-        rotate([0, 0, grid_angle])
-            for (x = [-grid_length : slot_spacing : grid_length])
-                translate([x, 0, 0])
-                    cube([slot_width, grid_width * 10, 2*center_height], center = true);
-    }
-    
-//Rear part behind ESC
-translate([rear_x_offset,0,-center_width/2])
-rotate([90, 0, 0])
-    difference() {
-        // Principal part
-        cube([rear_x_length, rear_x_width, 2*center_height], center = true);
-
-        // Slot grid
-        rotate([0, 0, grid_angle])
-            for (x = [-grid_length : slot_spacing : grid_length])
-                translate([x, 0, 0])
-                    cube([slot_width, grid_width * 10, 2*center_height], center = true);
-    }
-}
