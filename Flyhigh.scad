@@ -30,13 +30,15 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 
 
 // TODO 
-// Ailerons print slower
-// Baisser arm motor + encoche servo and offset --> Print check
-
+// Trouver longueur spar
 // Clean main with modules
+// Finish and test bash
 
+// Ailerons print slower
 
-
+// Choix :
+// Test print Encoche servo correction
+// Allonger 3 Spar ou supp attach central
 
 //Later :
 // Ailerons pin attach both sides 
@@ -55,19 +57,19 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 
 // Printing Mode : Choose which part of wings you want
 // Choose one at a time
-Left_side = true;
-Right_side = false;
+Left_side = false;
+Right_side = true;
 
 Aileron_part = false;
 Root_part = false;
 Mid_part = false;
 Tip_part = false;
-Mid_Tip_part = false;
+Mid_Tip_part = false; //TODO
 Motor_arm_full = false;
 Motor_arm_front = false;
-Motor_arm_back = true;
+Motor_arm_back = false;
 Center_part = false;
-Center_part_locker = false; // Need to activate Center_part as well
+Center_part_locker = true; // Need to activate Center_part as well
 
 Full_system = false;
 
@@ -105,7 +107,6 @@ motor_arm_width = 2*ellipse_maj_ax;
 wing_root_mm = 215;
 wing_mid_mm = 245;
 wing_tip_mm = wing_mm - wing_root_mm - wing_mid_mm - motor_arm_width;
-echo("Wing_tip_mm = ", wing_tip_mm);
 AC_CG_margin = 10; //Margin between mean aerodynamic center and gravity center in pourcentage
 aerodyn_center_plot = false; //Black
 gravity_center_plot = false; //Green
@@ -238,7 +239,7 @@ spar_circle_holder = 0.27; //radius of outer circle around spar to maintain the 
 
 
 //**************** Servo settings **********//  
-servo_dimension_perso = [24,9,27.5]; 
+servo_dimension_perso = [23,8,27.5]; //[24,9,27.5]; 
 all_pts_servo = get_trailing_edge_points();
 pt_start_servo = find_interpolated_point(wing_root_mm - 0, all_pts_servo);
 
@@ -841,22 +842,22 @@ module motor_arm_main(aero_grav_center){
 module center_part_main(aero_grav_center, ct_width, ct_length, ct_height, rear_spar_locker){  
 
 
-    if(Center_part){
-    
+    if(Center_part || Center_part_locker){
+     
         difference(){    
             center_part(aero_grav_center, ct_width, ct_length, ct_height, rear_spar_locker);
   
             union(){
             CreateSparHole(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, slice_gap_width, spar_circles_nb, spar_circle_holder, spar_flip_side_1);
-                        CreateSparHole_center(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, ct_width);
-                        CreateSparHole_center(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, ct_width);
-                        CreateSparHole_center(sweep_angle_3rd_spar, spar_hole_offset_3, spar_hole_perc_3, spar_hole_size_3, spar_hole_length_3, wing_root_chord_mm, ct_width);
+                        CreateSparHole_center(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, ct_width, spar_circles_nb, spar_circle_holder);
+                        CreateSparHole_center(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, ct_width, spar_circles_nb, spar_circle_holder);
+                        CreateSparHole_center(sweep_angle_3rd_spar, spar_hole_offset_3, spar_hole_perc_3, spar_hole_size_3, spar_hole_length_3, wing_root_chord_mm, ct_width, spar_circles_nb, spar_circle_holder);
                         mirror([0, 0, 1]) {
                             translate([0, 0, center_width]){
             CreateSparHole(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, slice_gap_width, spar_circles_nb, spar_circle_holder, spar_flip_side_1);
-                        CreateSparHole_center(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, ct_width);
-                        CreateSparHole_center(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, ct_width);
-                        CreateSparHole_center(sweep_angle_3rd_spar, spar_hole_offset_3, spar_hole_perc_3, spar_hole_size_3, spar_hole_length_3, wing_root_chord_mm, ct_width);
+                        CreateSparHole_center(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, ct_width, spar_circles_nb, spar_circle_holder);
+                        CreateSparHole_center(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, ct_width, spar_circles_nb, spar_circle_holder);
+                        CreateSparHole_center(sweep_angle_3rd_spar, spar_hole_offset_3, spar_hole_perc_3, spar_hole_size_3, spar_hole_length_3, wing_root_chord_mm, ct_width, spar_circles_nb, spar_circle_holder);
                             } // End of translate
                         } // End of Mirror
                         

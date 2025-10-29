@@ -75,13 +75,16 @@ module aerodynamic_gravity_center(wingspan, AC_CG_marg,  display_surface = false
         pts_te = get_trailing_edge_points();  
         pts_le = get_leading_edge_points();  
         aero_grav_center = get_gravity_aero_center(AC_CG_marg);
-        echo("Aerodynamic Center = ", aero_grav_center[0]);
-        echo("Gravity Center = ", aero_grav_center[1]);
+        if(grav_center_plot){
+            echo("Aerodynamic Center = ", aero_grav_center[0]);
+            echo("Gravity Center = ", aero_grav_center[1]);
+        }
         sections = aero_grav_center[2];
         // Display results
+        if(grav_center_plot){
         for (i = [0 : len(sections) - 1])
             echo("Section", i, ": Area =", sections[i][0], "Dist LE -> center =", sections[i][1]);
-  
+        }
         // Draw polyhedron of each section
         for (i = [0 : len(pts_le) - 2]) {
         p1 = pts_le[i];// Add debug leading edge

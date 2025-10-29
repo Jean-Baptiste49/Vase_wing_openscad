@@ -72,12 +72,25 @@ module CreateSparVoid(sweep_ang, hole_offset, hole_perc, hole_size, hole_length,
     }
 }
 
-module CreateSparHole_center(sweep_ang, hole_offset, hole_perc, hole_size, hole_length, wing_root_chord, ct_width)
+module CreateSparHole_center(sweep_ang, hole_offset, hole_perc, hole_size, hole_length, wing_root_chord, ct_width, circles_nb, spar_circle_holder)
 {
     translate([ 0, hole_offset, 0 ])    
         color("red") translate([ hole_perc / 100 * wing_root_chord, 0, 0 ])
             rotate([ 0, sweep_ang, 0 ]) //Spar angle rotation to follow the sweep    
                 translate([ 0, 0, - ct_width/2 ])    
-                    cylinder(h = hole_length, r = hole_size / 2);
+                    //cylinder(h = hole_length, r = hole_size / 2);
+                    //We create a circle with small outer circle to maintain our spar
+                    linear_extrude(height = hole_length)
+                        difference(){
+                            circle(r=hole_size / 2);
+                            
+                                union(){
+                                    for (i = [0 : 360/circles_nb : 360-360/circles_nb]) {
+                                        rotate([0,0,i])
+                                            translate([hole_size / 2,0,0])
+                                                circle(r=spar_circle_holder); 
+                                    }            
+                                } //End of union
+                        } //End of difference                    
 
 }
