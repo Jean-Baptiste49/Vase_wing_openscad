@@ -1,12 +1,13 @@
 #!/bin/bash
-
+# We use openscad-nightly which is the last version with Manifold
+# --backend=manifold We use Manifold rendering because it's way faster than CGAL
 
 SRC="Flyhigh.scad"
 
 OUTDIR="stl_output"
 mkdir -p "$OUTDIR"
 
-
+#Parts which to be printed in right and left side
 SIDE_PARTS=(
   Aileron_part
   Root_part
@@ -16,7 +17,7 @@ SIDE_PARTS=(
   Motor_arm_back
 )
 
-
+#Parts which have no side
 CENTER_PARTS=(
   Center_part
   Center_part_locker
