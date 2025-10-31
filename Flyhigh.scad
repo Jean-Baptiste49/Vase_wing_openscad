@@ -30,17 +30,14 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 
 
 // TODO 
-// Clean bash : OK
-// Trouver longueur spar : OK
-// Clean main with modules : Finir full mode + Motor arm and main stage + clean comments
+// Clean main with modules : Motor arm and main stage
 // Note on openscad nightly and manifold option
 // Mid_Tip_part ? We keep ?
-
-// Ailerons print slower
+// Ailerons print slower + Pb servo 
 
 // Choix :
 // Test print Encoche servo correction
-// Allonger 3 Spar ou supp attach central
+// Allonger Spar numero 3 ou supp attach central
 
 //Later :
 // Ailerons pin attach both sides 
@@ -58,11 +55,13 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 //****************Global Variables*****************//
 
 // Printing Mode : Choose which part of wings you want
-// Choose one at a time
+Full_system = false;
+
 Left_side = true;
 Right_side = false;
 
-Aileron_part = false;
+// Choose one at a time
+Aileron_part = true;
 Root_part = false;
 Mid_part = false;
 Tip_part = false;
@@ -71,9 +70,7 @@ Motor_arm_full = false;
 Motor_arm_front = false;
 Motor_arm_back = false;
 Center_part = false;
-Center_part_locker = false; // Need to activate Center_part as well
-
-Full_system = true;
+Center_part_locker = false; 
 
 //****************Wing Airfoil settings**********//
 wing_sections = Full_system?10:20; // how many sections : more is higher resolution but higher processing. We decrease wing_sections for Full_system because it's too much elements just for display
@@ -334,8 +331,9 @@ module wing_main() {
                     wing_shell();
                     if (add_inner_grid) wing_inner_grid();
                 }
-                wing_addons();
+                wing_modif();
             }
+            if (Aileron_part) CreateAileron(); //We remove ailerons from wing if request
             wing_cut_sections();
         }
         if (winglet_mode && Tip_part)
@@ -390,14 +388,14 @@ module wing_voids() {
 
 
 //-----------------------------------------------------------
-// ADD-ON PARTS (visible outer parts)
+// WING MODIFICATIONS (visible outer parts)
 //-----------------------------------------------------------
-module wing_addons() {
+module wing_modif() {
     union() {
         if (winglet_mode)
             Create_winglet(cube_for_vase = true);
 
-        if (create_aileron && !Aileron_part)
+        if (create_aileron && !Aileron_part && !Full_system)
             CreateAileronVoid();
 
         if (spar_hole)
@@ -412,6 +410,7 @@ module wing_addons() {
 //-----------------------------------------------------------
 // SUBMODULES: Spars, Servos, Winglets
 //-----------------------------------------------------------
+//Create Void into ribs for spars to avoid conflict between spar and ribs for vase print
 module wing_spar_voids() {
     CreateSparVoid(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size,
                    spar_hole_length, wing_root_chord_mm, spar_hole_void_clearance, spar_flip_side_1);
@@ -423,6 +422,7 @@ module wing_spar_voids() {
                    spar_hole_length_3, wing_root_chord_mm, spar_hole_void_clearance_3, spar_flip_side_3);
 }
 
+//Create holes for spars in wings
 module wing_spar_holes() {
     CreateSparHole(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size,
                    spar_hole_length, wing_root_chord_mm, slice_gap_width,
@@ -437,6 +437,7 @@ module wing_spar_holes() {
                    spar_circles_nb, spar_circle_holder, spar_flip_side_3);
 }
 
+//Create Void in ribs for servo (same reason as spar)
 module servo_void_block() {
     rotate([0, 0, servo_rotate_z_deg])
     translate([servo_dist_le_mm, servo_dist_depth_mm, servo_dist_root_mm])
@@ -448,6 +449,7 @@ module servo_void_block() {
     }
 }
 
+//Create Void in wings for servo 
 module servo_block() {
     rotate([0, 0, servo_rotate_z_deg])
     translate([servo_dist_le_mm, servo_dist_depth_mm, servo_dist_root_mm])
@@ -459,6 +461,7 @@ module servo_block() {
     }
 }
 
+//Create Winglet with the Pin Aileron connection
 module winglet_with_void() {
     difference() {
         Create_winglet();
@@ -469,10 +472,10 @@ module winglet_with_void() {
 
 
 //-----------------------------------------------------------
-// SECTION CUTS (for printing or assembling)
+// SECTION CUTS (for printing)
 //-----------------------------------------------------------
 module wing_cut_sections() {
-    if (Aileron_part) CreateAileron();
+    if (Aileron_part) cube_cut(wing_root_mm + motor_arm_width, wing_mid_mm);
     if (Root_part) cube_cut(0, wing_root_mm);
     if (Mid_part) cube_cut(wing_root_mm + motor_arm_width, wing_mid_mm);
     if (Tip_part && !winglet_mode)
@@ -494,29 +497,29 @@ module wing_full_system() {
     union() {
         intersection() {
             difference() {
-                wing_shell();
-                if (add_inner_grid) wing_inner_grid();
+                difference() {
+                    wing_shell();
+                    if (add_inner_grid) wing_inner_grid();
+                }
+                    wing_modif();
+                    CreateAileronVoid(); //We remove the ailerons the ailerons
             }
-            wing_addons();
+            //We remove the tip for Winglet
+            if (winglet_mode) cube_cut(0,wing_root_mm + motor_arm_width + wing_mid_mm);
         }
-
-       // if (winglet_mode)
-        //    Create_winglet();
+        if (winglet_mode) winglet_with_void();
 
         // Create aileron block in full mode
-      /*  intersection() {
+        intersection() {
             difference() {
                 wing_shell();
                 if (add_inner_grid) wing_inner_grid();
-            }
-            union() {
-                wing_spar_holes();
                 servo_block();
             }
-        }
-
         if (create_aileron)
-            CreateAileron();*/
+            CreateAileron();
+       }
+
     }
 }
 
@@ -576,7 +579,7 @@ module motor_arm_main(aero_grav_center){
 module center_part_main(aero_grav_center, ct_width, ct_length, ct_height, rear_spar_locker){  
 
 
-    if(Center_part || Center_part_locker){
+    if(Center_part || Center_part_locker || Full_system){
      
         difference(){    
             center_part(aero_grav_center, ct_width, ct_length, ct_height, rear_spar_locker);

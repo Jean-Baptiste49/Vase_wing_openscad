@@ -61,7 +61,7 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 Left_side = false;
 Right_side = true;
 
-Aileron_part = false;
+Aileron_part = true;
 Root_part = false;
 Mid_part = false;
 Tip_part = false;
@@ -72,7 +72,7 @@ Motor_arm_back = false;
 Center_part = true;
 Center_part_locker = false; // Need to activate Center_part as well
 
-Full_system = true;
+Full_system = false;
 
 //****************Wing Airfoil settings**********//
 wing_sections = Full_system?10:20; // how many sections : more is higher resolution but higher processing. We decrease wing_sections for Full_system because it's too much elements just for display
@@ -484,7 +484,7 @@ module wing_main()
   if(Mid_Tip_part) {
     translate([-1000, -1000, wing_root_mm + motor_arm_width])
     cube([2000, 2000, wing_mid_mm + wing_tip_mm]); 
-  } // End difference     
+  }    
   }// End intersection
   
     if(winglet_mode && Tip_part)
@@ -781,6 +781,7 @@ module wing_main()
     }
     
   } // End difference */
+
   }// End if Full wing
 }
 
