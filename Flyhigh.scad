@@ -7,6 +7,7 @@
 //Tips
 // 1- If you want to add something into the wing, add a void offset around the part you want to add to avoid conflict with intern ribs during vase print  
 // 2- When spar hole is far from a edge and the vase circuit connection is too long, the system doesnt like and don't draw the spar hole. Use spar_flip_side parameter to orientate the vase circuit connection to the closest edge
+// 3- if you get this error : "WARNING: Normalized tree is growing past 200000 elements. Aborting normalization." -> decrease the wing_sections value
 
 
 // Note Printer 
@@ -30,10 +31,12 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 
 
 // TODO 
-// Clean main with modules : Motor arm and main stage
 // Note on openscad nightly and manifold option
 // Mid_Tip_part ? We keep ?
 // Ailerons print slower + Pb servo 
+// Correction servo
+// Correction passage cable
+// Correction serrage spar main center more tight
 
 // Choix :
 // Test print Encoche servo correction
@@ -55,10 +58,10 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 //****************Global Variables*****************//
 
 // Printing Mode : Choose which part of wings you want
-Full_system = false;
+Full_system = true;
 
-Left_side = true;
-Right_side = false;
+Left_side = false;
+Right_side = true;
 
 // Choose one at a time
 Aileron_part = true;
@@ -73,7 +76,7 @@ Center_part = false;
 Center_part_locker = false; 
 
 //****************Wing Airfoil settings**********//
-wing_sections = Full_system?10:20; // how many sections : more is higher resolution but higher processing. We decrease wing_sections for Full_system because it's too much elements just for display
+wing_sections = Full_system?10:20; // more is higher resolution but higher processing. We decrease wing_sections for Full_system because it's too much elements just for display
 wing_mm = 500;            // wing length in mm (= Half the wingspan)
 wing_root_chord_mm = 180; // Root chord length in mm
 wing_tip_chord_mm = 110; // wing tip chord length in mm (Not relevant for elliptic wing);
@@ -101,7 +104,7 @@ motor_arm_grav_center_offset = 35;
 
 
 //**************** Wing Airfoil dimensions **********//
-// Total must do wing_mm
+// Total length must do wing_mm
 motor_arm_width = 2*ellipse_maj_ax;
 wing_root_mm = 215;
 wing_mid_mm = 245;
@@ -161,11 +164,10 @@ add_inner_grid = true; // true if you want to add the inner grid for 3d printing
 grid_mode = 2;           // Grid mode 1=diamond 2= spar and cross spars
 create_rib_voids = false; // add holes to the ribs to decrease weight
 
-//**************** Grid mode 1 settings **********//
+//Grid mode 1 settings
 grid_size_factor = 2; // changes the size of the inner grid blocks
-//******//
 
-//**************** Grid mode 2 settings **********//
+//Grid mode 2 settings
 spar_offset = 12;//15; // Offset the spars from the LE/TE
 rib_num = 14;      // Number of ribs
 rib_offset = 3;   // Offset
@@ -205,34 +207,38 @@ spar_num = 3;     // Number of spars for grid mode 2
 spar_length_offset_1 = wing_mm - wing_tip_mm - 2*attached_1_length;
 spar_length_offset_2 = wing_mm - wing_tip_mm - 2*attached_2_length;
 spar_angle_fitting_coeff = 1.15; // Coeff to adjust the spar angle into the wing
-//Spar angle rotation to follow the sweep
+spar_circles_nb = 12; //Number of outer circle around spar to maintain the part
+spar_circle_holder = 0.27; //radius of outer circle around spar to maintain the part 0.25 too large and 0.30 too tight
+spar_inser_lgth_into_center_part = center_width/2;
+
+//*** Spar angle rotation to follow the sweep
 sweep_angle = use_custom_lead_edge_sweep ? atan((spar_angle_fitting_coeff * lead_edge_sweep[len(lead_edge_sweep) - 1][1]) / lead_edge_sweep[len(lead_edge_sweep) - 1][0]) : 0;
 
+//*** Spar 1
 spar_hole = true;                // Add a spar hole into the wing
 spar_hole_perc = 15;             // Percentage from leading edge
-spar_hole_size = 5.6;              // Size of the spar hole
+spar_hole_size = 5.65;              // Size of the spar hole
 spar_hole_length = use_custom_lead_edge_sweep ? spar_length_offset_1/cos(sweep_angle) : spar_length_offset_1; // length of the spar in mm
 spar_hole_offset = 1.8;            // Adjust where the spar is located
 spar_hole_void_clearance = 2; // Clearance for the spar to grid interface(at least double extrusion width is usually needed)
 spar_flip_side_1 = true; // use to offset the spar attached on a side of the wing to the other
-// Second spar
-spar_hole_perc_2 = 37;             // Percentage from leading edge
-spar_hole_size_2 = 5.6;              // Size of the spar hole
-spar_hole_length_2= use_custom_lead_edge_sweep ? spar_length_offset_2/cos(sweep_angle) : spar_length_offset_2; // length of the spar in mm
-spar_hole_offset_2 = 1.2;            // Adjust where the spar is located
+
+//*** Spar 2
+spar_hole_perc_2 = 37;             
+spar_hole_size_2 = 5.6;             
+spar_hole_length_2= use_custom_lead_edge_sweep ? spar_length_offset_2/cos(sweep_angle) : spar_length_offset_2; 
+spar_hole_offset_2 = 1.2;            
 spar_hole_void_clearance_2 = 2; 
-spar_flip_side_2 = true; // use to offset the spar attached on a side of the wing to the other
-// third spar
-spar_hole_perc_3 = 75;             // Percentage from leading edge
-spar_hole_size_3 = 5.6;              // Size of the spar hole (5.7 too large, 5.5 too tight)
-spar_hole_length_3= 31 + motor_arm_width + wing_root_mm;// length of the spar in mm
-spar_hole_offset_3 = 1.2;            // Adjust where the spar is located
+spar_flip_side_2 = true; 
+
+//*** Spar 3
+spar_hole_perc_3 = 75;            
+spar_hole_size_3 = 5.6;              
+spar_hole_length_3= 31 + motor_arm_width + wing_root_mm;
+spar_hole_offset_3 = 1.2;          
 spar_hole_void_clearance_3 = 2;
-spar_flip_side_3 = true; // use to offset the spar attached on a side of the wing to the other
+spar_flip_side_3 = true; 
 sweep_angle_3rd_spar = 2.04*sweep_angle/3;
-spar_circles_nb = 12; //Number of outer circle around spar to maintain the part
-spar_circle_holder = 0.27; //radius of outer circle around spar to maintain the part 0.25 too large and 0.30 too tight
-spar_inser_lgth_into_center_part = center_width/2;
 //******//
 
 
@@ -524,108 +530,77 @@ module wing_full_system() {
 }
 
 
-module motor_arm_main(aero_grav_center){
-    
-        if(Motor_arm_full || Motor_arm_front || Motor_arm_back || Full_system){
-        difference(){
-        motor_arm(ellipse_maj_ax, ellipse_min_ax, motor_arm_length_front, motor_arm_length_back, motor_arm_height, motor_arm_tilt_angle, motor_arm_screw_fit_offset, aero_grav_center, motor_arm_grav_center_offset, motor_arm_y_offset, back =Motor_arm_back, front = Motor_arm_front, full = Motor_arm_full);
-            union(){
-                        CreateSparHole(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, slice_gap_width, spar_circles_nb, spar_circle_holder, spar_flip_side_1);
-                        CreateSparHole(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, slice_gap_width, spar_circles_nb, spar_circle_holder, spar_flip_side_2);
-                        CreateSparHole(sweep_angle_3rd_spar, spar_hole_offset_3, spar_hole_perc_3, spar_hole_size_3, spar_hole_length_3, wing_root_chord_mm, slice_gap_width, spar_circles_nb, spar_circle_holder, spar_flip_side_3);
+
+
+//-----------------------------------------------------------
+// MAIN MOTOR ARM MODULE
+//-----------------------------------------------------------
+module motor_arm_main(aero_grav_center) {
+
+
+    if(Motor_arm_full || Motor_arm_front || Motor_arm_back || Full_system){
+        difference() {
+        
+            motor_arm(ellipse_maj_ax, ellipse_min_ax, motor_arm_length_front, motor_arm_length_back, motor_arm_height, motor_arm_tilt_angle, motor_arm_screw_fit_offset, aero_grav_center, motor_arm_grav_center_offset, motor_arm_y_offset, back =Motor_arm_back, front = Motor_arm_front, full = Motor_arm_full);
             
+            //We remove the spar from the motor arms
+            wing_spar_holes();
+            //We remove the servo from the motor arms
+            if (create_servo_void) servo_block();
+            
+         }//End of difference
+     }//End if
 
-
-        if (create_servo_void)
-                    {
-                        rotate([ 0, 0, servo_rotate_z_deg ])
-                            translate([ servo_dist_le_mm, servo_dist_depth_mm, servo_dist_root_mm ])
-                        {
-                            if (servo_type == 1)
-                            {
-                                Servo3_7g();
-                            }
-                            else if (servo_type == 2)
-                            {
-                                Servo5g();
-                            }
-                            else if (servo_type == 3)
-                            {
-                                Servo9g();
-                            }
-                            else if (servo_type == 4)
-                            {
-                                Servo4();
-                            }                    
-                        }
-                    }            
-                        
-                        
-                        
-            }
-        }//End of difference
-    }//End of Motor_arm_left
-    
 }
 
 
 
-
-
-
-
-
-
-module center_part_main(aero_grav_center, ct_width, ct_length, ct_height, rear_spar_locker){  
-
+//-----------------------------------------------------------
+// MAIN CENTER PART MODULE
+//-----------------------------------------------------------
+module center_part_main(aero_grav_center, ct_width, ct_length, ct_height, rear_spar_locker) {
 
     if(Center_part || Center_part_locker || Full_system){
-     
-        difference(){    
+        difference() {
             center_part(aero_grav_center, ct_width, ct_length, ct_height, rear_spar_locker);
-  
+            
             union(){
-            CreateSparHole(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, slice_gap_width, spar_circles_nb, spar_circle_holder, spar_flip_side_1);
-                        CreateSparHole_center(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, ct_width, spar_circles_nb, spar_circle_holder, spar_inser_lgth_into_center_part);
-                        CreateSparHole_center(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, ct_width, spar_circles_nb, spar_circle_holder, spar_inser_lgth_into_center_part);
-                        CreateSparHole_center(sweep_angle_3rd_spar, spar_hole_offset_3, spar_hole_perc_3, spar_hole_size_3, spar_hole_length_3, wing_root_chord_mm, ct_width, spar_circles_nb, spar_circle_holder, spar_inser_lgth_into_center_part);
-                        mirror([0, 0, 1]) {
-                            translate([0, 0, center_width]){
-            CreateSparHole(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, slice_gap_width, spar_circles_nb, spar_circle_holder, spar_flip_side_1);
-                        CreateSparHole_center(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, ct_width, spar_circles_nb, spar_circle_holder, spar_inser_lgth_into_center_part);
-                        CreateSparHole_center(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, ct_width, spar_circles_nb, spar_circle_holder, spar_inser_lgth_into_center_part);
-                        CreateSparHole_center(sweep_angle_3rd_spar, spar_hole_offset_3, spar_hole_perc_3, spar_hole_size_3, spar_hole_length_3, wing_root_chord_mm, ct_width, spar_circles_nb, spar_circle_holder, spar_inser_lgth_into_center_part);
-                            } // End of translate
-                        } // End of Mirror
-                        
-            }//End of Union
-        }//End of difference
+                center_spar_holes(ct_width);
+                mirror([0, 0, 1])
+                    translate([0, 0, ct_width])
+                        center_spar_holes(ct_width);
+            }
+            
+        }//End difference    
+    }//End if
+}
+
+
+//-----------------------------------------------------------
+// SPAR VOIDS
+//-----------------------------------------------------------
+module center_spar_holes(ct_width) {   
+    CreateSparHole_center(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, ct_width, spar_circles_nb, spar_circle_holder, spar_inser_lgth_into_center_part);
     
+    CreateSparHole_center(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, ct_width, spar_circles_nb, spar_circle_holder, spar_inser_lgth_into_center_part);
     
-    }//End if Center_part
+    CreateSparHole_center(sweep_angle_3rd_spar, spar_hole_offset_3, spar_hole_perc_3, spar_hole_size_3, spar_hole_length_3, wing_root_chord_mm, ct_width, spar_circles_nb, spar_circle_holder, spar_inser_lgth_into_center_part);
 }
 
 
 
+//-----------------------------------------------------------
+// MAIN 
+//-----------------------------------------------------------
     
-if (wing_sections * 0.2 < slice_transisions)
-{
-    echo("ERROR: You should lower the amount of slice_transisions.");
-}
-else if (center_airfoil_change_perc < 0 || center_airfoil_change_perc > 100)
-{
-    echo("ERROR: center_airfoil_change_perc has to be in a range of 0-100.");
-}
-else if (add_inner_grid == false && spar_hole == true)
-{
-    echo("ERROR: add_inner_grid needs to be true for spar_hole to be true");
-}
+if (wing_sections * 0.2 < slice_transisions) echo("ERROR: You should lower the amount of slice_transisions.");
+
+else if (center_airfoil_change_perc < 0 || center_airfoil_change_perc > 100) echo("ERROR: center_airfoil_change_perc has to be in a range of 0-100.");
+
+else if (add_inner_grid == false && spar_hole == true) echo("ERROR: add_inner_grid needs to be true for spar_hole to be true");
+
 else
 {
-
-
-
-
     //**************** Aero and Gravity Center **********//
     aerodynamic_gravity_center(wing_mm, AC_CG_margin, display_surface = false, display_point = false, aero_center_plot = aerodyn_center_plot, grav_center_plot = gravity_center_plot);
     aero_grav_center = get_gravity_aero_center(AC_CG_margin);
@@ -634,41 +609,30 @@ else
     echo(str("[SPAR] Spar 1 at ",spar_hole_perc,"% from LE is ", spar_hole_length + spar_inser_lgth_into_center_part, "mm length."));
     echo(str("[SPAR] Spar 2 at ",spar_hole_perc_2,"% from LE is ", spar_hole_length_2 + spar_inser_lgth_into_center_part, "mm length."));    
     echo(str("[SPAR] Spar 3 at ",spar_hole_perc_3,"% from LE is ", spar_hole_length_3 + spar_inser_lgth_into_center_part, "mm length."));        
-    
-    
+   
     //**************** Wing **********//
     if(Full_system || Root_part || Mid_part || Tip_part || Aileron_part || Mid_Tip_part){
         
-        if(Left_side || Full_system){
-            wing_main();
-        }
-        if(Right_side || Full_system){
-            mirror([0, 0, 1]) {
-                translate([0, 0, center_width])
-                    wing_main();
-            } 
-        }//End if Right_side
-    }
+        if(Left_side || Full_system) wing_main();
 
-    
-    //**************** Motor arm **********//
-    if(Left_side || Full_system){
-    motor_arm_main(aero_grav_center);
+        if(Right_side || Full_system)
+            mirror([0, 0, 1])
+                translate([0, 0, center_width])
+                    wing_main(); 
     }
-    if(Right_side || Full_system){
-        mirror([0, 0, 1]) {
+ 
+    //**************** Motor arm **********//
+    if(Left_side || Full_system) motor_arm_main(aero_grav_center);
+    
+    if(Right_side || Full_system)
+        mirror([0, 0, 1]) 
             translate([0, 0, center_width])
                 motor_arm_main(aero_grav_center);
-        } 
-    }//End if Full System
 
-    
     //**************** Center part **********//
     center_part_main(aero_grav_center, center_width, center_length, center_height, Center_part_locker);
     
-    
-    
-    
+    //**************** Debug **********//
     if(debug_leading_trailing_edge)
     {
         points_te = get_trailing_edge_points();     
@@ -678,191 +642,23 @@ else
     }
     
     if(debug_spar_hole)
-    {  
-        ///*** Spar hole in Wings ***///
-        CreateSparHole(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, slice_gap_width, spar_circles_nb, spar_circle_holder, spar_flip_side_1);
-        CreateSparHole(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, slice_gap_width, spar_circles_nb, spar_circle_holder, spar_flip_side_2);
-        CreateSparHole(sweep_angle_3rd_spar, spar_hole_offset_3, spar_hole_perc_3, spar_hole_size_3, spar_hole_length_3, wing_root_chord_mm, slice_gap_width, spar_circles_nb, spar_circle_holder, spar_flip_side_3);
-        
-        ///*** Spar hole in Center Part ***///            
-        CreateSparHole_center(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, center_width, spar_circles_nb, spar_circle_holder, spar_inser_lgth_into_center_part);
-        CreateSparHole_center(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, center_width, spar_circles_nb, spar_circle_holder, spar_inser_lgth_into_center_part);
-        CreateSparHole_center(sweep_angle_3rd_spar, spar_hole_offset_3, spar_hole_perc_3, spar_hole_size_3, spar_hole_length_3, wing_root_chord_mm, center_width, spar_circles_nb, spar_circle_holder, spar_inser_lgth_into_center_part);          
-  
-                    
+    {        
+        wing_spar_holes();//Spar hole in Wings       
+        center_spar_holes(center_width);//Spar hole in Center Part                          
     }    
 
-    if(debug_spar_void)
-    {
-        CreateSparVoid(sweep_angle, spar_hole_offset, spar_hole_perc, spar_hole_size, spar_hole_length, wing_root_chord_mm, spar_hole_void_clearance, spar_flip_side_1);
-        CreateSparVoid(sweep_angle, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2, spar_hole_length_2, wing_root_chord_mm, spar_hole_void_clearance_2, spar_flip_side_2);
-        CreateSparVoid(sweep_angle_3rd_spar, spar_hole_offset_3, spar_hole_perc_3, spar_hole_size_3, spar_hole_length_3, wing_root_chord_mm, spar_hole_void_clearance_3, spar_flip_side_3);     
-        
-    }
+    if(debug_spar_void) wing_spar_voids(); //Show voids for wing spar in ribs structure
+
 
     if (servo_show)
     {
-        rotate([ 0, 0, servo_rotate_z_deg ]) translate([ servo_dist_le_mm, servo_dist_depth_mm, servo_dist_root_mm ])
-        {
-            if (servo_type == 1)
-            {
-                Servo3_7g();
-            }
-            else if (servo_type == 2)
-            {
-                Servo5g();
-            }
-            else if (servo_type == 3)
-            {
-                Servo9g();
-            }
-            else if (servo_type == 4)
-            {
-                Servo4();
-                Servo4Void();
-            }
-        }
+        servo_void_block();
+        servo_block();
     }
-}
+    
+    
+} //End if main
 
 
 
-/*
 
-//-----------------------------------------------------------
-// MAIN MOTOR ARM MODULE
-//-----------------------------------------------------------
-module motor_arm_main() {
-    intersection() {
-        difference() {
-            motor_arm_shell();
-            if (add_inner_grid) motor_arm_inner_grid();
-        }
-        motor_arm_addons();
-    }
-}
-
-
-//-----------------------------------------------------------
-// OUTER SHELL
-//-----------------------------------------------------------
-module motor_arm_shell() {
-    CreateMotorArm();
-}
-
-
-//-----------------------------------------------------------
-// INTERNAL GRID STRUCTURE
-//-----------------------------------------------------------
-module motor_arm_inner_grid() {
-    difference() {
-        StructureGrid(motor_arm_mm, motor_arm_root_mm, grid_size_factor);
-
-        if (create_rib_voids)
-            CreateRibVoids();
-
-        if (spar_hole)
-            motor_arm_spar_voids();
-
-        CreateGridVoid();
-    }
-}
-
-
-//-----------------------------------------------------------
-// SPAR VOID
-//-----------------------------------------------------------
-module motor_arm_spar_voids() {
-    CreateSparVoid(0, spar_hole_offset, spar_hole_perc, spar_hole_size,
-                   spar_hole_length, motor_arm_root_mm, spar_hole_void_clearance, spar_flip_side_1);
-}
-
-
-//-----------------------------------------------------------
-// ADD-ONS (spar holes, connectors, servos…)
-//-----------------------------------------------------------
-module motor_arm_addons() {
-    union() {
-        if (spar_hole)
-            CreateSparHole(0, spar_hole_offset, spar_hole_perc, spar_hole_size,
-                           spar_hole_length, motor_arm_root_mm, slice_gap_width,
-                           spar_circles_nb, spar_circle_holder, spar_flip_side_1);
-
-        if (create_servo_void)
-            servo_block();
-    }
-}
-
-
-//-----------------------------------------------------------
-// MAIN CENTER PART MODULE
-//-----------------------------------------------------------
-module center_part_main() {
-    intersection() {
-        difference() {
-            center_shell();
-            if (add_inner_grid) center_inner_grid();
-        }
-        center_addons();
-    }
-}
-
-
-//-----------------------------------------------------------
-// OUTER SHELL
-//-----------------------------------------------------------
-module center_shell() {
-    CreateCenterPart();
-}
-
-
-//-----------------------------------------------------------
-// INTERNAL STRUCTURE
-//-----------------------------------------------------------
-module center_inner_grid() {
-    difference() {
-        StructureGrid(center_mm, center_root_chord_mm, grid_size_factor);
-
-        if (create_rib_voids)
-            CreateRibVoids();
-
-        if (spar_hole)
-            center_spar_voids();
-
-        CreateGridVoid();
-    }
-}
-
-
-//-----------------------------------------------------------
-// SPAR VOIDS
-//-----------------------------------------------------------
-module center_spar_voids() {
-    CreateSparVoid(0, spar_hole_offset, spar_hole_perc, spar_hole_size,
-                   spar_hole_length, center_root_chord_mm, spar_hole_void_clearance, spar_flip_side_1);
-
-    CreateSparVoid(0, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2,
-                   spar_hole_length_2, center_root_chord_mm, spar_hole_void_clearance_2, spar_flip_side_2);
-}
-
-
-//-----------------------------------------------------------
-// ADD-ON PARTS
-//-----------------------------------------------------------
-module center_addons() {
-    union() {
-        if (spar_hole)
-            CreateSparHole(0, spar_hole_offset, spar_hole_perc, spar_hole_size,
-                           spar_hole_length, center_root_chord_mm, slice_gap_width,
-                           spar_circles_nb, spar_circle_holder, spar_flip_side_1);
-
-        if (spar_hole_2)
-            CreateSparHole(0, spar_hole_offset_2, spar_hole_perc_2, spar_hole_size_2,
-                           spar_hole_length_2, center_root_chord_mm, slice_gap_width,
-                           spar_circles_nb, spar_circle_holder, spar_flip_side_2);
-
-        if (create_servo_void)
-            servo_block();
-    }
-}
-*/
