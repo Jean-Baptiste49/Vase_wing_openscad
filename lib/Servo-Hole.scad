@@ -212,8 +212,9 @@ module Servo4 ()
     rotate([ 0, sweep_ang, 0 ]) //Spar angle rotation to follow the sweep
         union(){
         cube([ servo_dimension_perso[0],servo_dimension_perso[1],servo_dimension_perso[2]]);
+        
         //Triangle to complete the void
-  
+  /*
         translate([ 0, servo_dimension_perso[1], servo_dimension_perso[2] ])
             rotate([90, 0, 0])
                 linear_extrude(height = servo_dimension_perso[1])
@@ -222,7 +223,7 @@ module Servo4 ()
                     [servo_dimension_perso[0], 0],      // Point B
                     [servo_dimension_perso[0], servo_dimension_perso[0]*tan(sweep_ang)]      // Point C
                     ]);   
-        
+        */
         }
 }
 

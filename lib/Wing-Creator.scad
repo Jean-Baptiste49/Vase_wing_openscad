@@ -71,10 +71,11 @@ module WingSlice(index, z_location, local_wing_sections)
 
     translate([ 0, 0, z_location ]) linear_extrude(height = 0.00000001, slices = 0)
         translate([ -wing_center_line_perc / 100 * current_chord_mm, 0, 0 ])
-            scale([ scale_factor, scale_factor,
-                    1 ]) if (washout_deg > 0 &&
-                             ((wing_mode > 1 && index > WashoutStart(0, local_wing_sections, washout_start, wing_mm)) ||
-                              (wing_mode == 1 && index > (local_wing_sections * (washout_start / 100)))))
+            scale([ scale_factor, scale_factor,1 ]) 
+           if (washout_deg > 0 &&
+           ((wing_mode > 1 && 
+           index > WashoutStart(0, local_wing_sections, washout_start, wing_mm)) ||
+           (wing_mode == 1 && index > (local_wing_sections * (washout_start / 100)))))
     {
         WashoutSlice(index, current_chord_mm, local_wing_sections);
     }
@@ -97,23 +98,23 @@ module CreateWing(low_res = false)
             {
         for (i = [0:local_wing_sections - 1])
         {
-            x0 = wing_section_mm * i;
-            x1 = wing_section_mm * (i + 1);
+            z0 = wing_section_mm * i;
+            z1 = wing_section_mm * (i + 1);
 
-            y0 = use_custom_lead_edge_curve ? interpolate_y(x0) * curve_amplitude : 0;
-            y1 = use_custom_lead_edge_curve ? interpolate_y(x1) * curve_amplitude : 0;
+            y0 = use_custom_lead_edge_curve ? interpolate_y(z0) * curve_amplitude : 0;
+            y1 = use_custom_lead_edge_curve ? interpolate_y(z1) * curve_amplitude : 0;
 
-            x_off0 = use_custom_lead_edge_sweep ? interpolate_x(x0) : 0;
-            x_off1 = use_custom_lead_edge_sweep ? interpolate_x(x1) : 0;
+            x_off0 = use_custom_lead_edge_sweep ? interpolate_x(z0) : 0;
+            x_off1 = use_custom_lead_edge_sweep ? interpolate_x(z1) : 0;
 
             hull()
             {
-                //translate([x_off0, y0, x0])
+                //translate([x_off0, y0, z0])
                 translate([x_off0, y0, 0])
-                    WingSlice(i, x0, local_wing_sections);
-                //translate([x_off1, y1, x1])
+                    WingSlice(i, z0, local_wing_sections);
+                //translate([x_off1, y1, z1])
                 translate([x_off1, y1, 0])
-                    WingSlice(i + 1, x1, local_wing_sections);
+                    WingSlice(i + 1, z1, local_wing_sections);
             }
         }
         }
@@ -122,22 +123,22 @@ module CreateWing(low_res = false)
     {
         for (i = [0:local_wing_sections - 1])
         {
-            pos = f(i, local_wing_sections, wing_mm);
-            npos = f(i + 1, local_wing_sections, wing_mm);
+            z_pos = f(i, local_wing_sections, wing_mm);
+            z_npos = f(i + 1, local_wing_sections, wing_mm);
 
-            y0 = use_custom_lead_edge_curve ? interpolate_y(pos) * curve_amplitude : 0;
-            y1 = use_custom_lead_edge_curve ? interpolate_y(npos) * curve_amplitude : 0;
+            y0 = use_custom_lead_edge_curve ? interpolate_y(z_pos) * curve_amplitude : 0;
+            y1 = use_custom_lead_edge_curve ? interpolate_y(z_npos) * curve_amplitude : 0;
 
-            x_off0 = use_custom_lead_edge_sweep ? interpolate_x(pos) : 0;
-            x_off1 = use_custom_lead_edge_sweep ? interpolate_x(npos) : 0;
+            x_off0 = use_custom_lead_edge_sweep ? interpolate_x(z_pos) : 0;
+            x_off1 = use_custom_lead_edge_sweep ? interpolate_x(z_npos) : 0;
             translate([ wing_root_chord_mm * (wing_center_line_perc / 100), 0, 0 ]) union()
             {
             hull()
             {
                 translate([x_off0, y0, 0])
-                    WingSlice(i, pos, local_wing_sections);
+                    WingSlice(i, z_pos, local_wing_sections);
                 translate([x_off1, y1, 0])
-                    WingSlice(i + 1, npos, local_wing_sections);
+                    WingSlice(i + 1, z_npos, local_wing_sections);
             }
         }
         }
@@ -299,3 +300,143 @@ module show_leading_edge_points(points) {
     
 function get_leading_edge_points(local_wing_sections = wing_sections) =
     [ for (i = [0 : local_wing_sections]) leading_edge_point(i, local_wing_sections) ];
+
+    
+    
+//****************Tools function and modules for Full Wing points retrieval  **********//  
+// Display all upper and lower wall points for each airfoil section
+// from the Leading Edge (LE, x=0) to the Trailing Edge (TE, x=chord)
+module show_all_airfoil_wall_points_full(local_wing_sections = wing_sections, steps_per_chord = 50) {
+    for (i = [0 : local_wing_sections]) {
+
+        // Retrieve the actual chord length for this section
+        chord = (wing_mode == 1)
+                    ? ChordLengthAtIndex(i, local_wing_sections)
+                    : ChordLengthAtEllipsePosition((wing_mm + 0.1), wing_root_chord_mm,
+                                                   (wing_mode == 1) ? i*wing_mm/local_wing_sections
+                                                                    : f(i, local_wing_sections, wing_mm));
+
+        // Generate the x positions from the LE (0) to the TE (chord)
+        x_positions = [for (s = [0 : steps_per_chord]) s/steps_per_chord * chord];
+
+        for (x = x_positions)
+            show_airfoil_wall_points(x, i, local_wing_sections);
+    }
+}
+
+
+
+
+ 
+// Module to display the outer wall points (upper/lower)
+// x : position along the chord (in local mm)
+// index : section index (0 → root, N → tip)
+// local_wing_sections : number of wing sections
+module show_airfoil_wall_points(x, index, local_wing_sections = wing_sections) {
+
+    // Recover Z position at index
+    z = (wing_mode == 1)
+        ? (index * wing_mm / local_wing_sections)
+        : f(index, local_wing_sections, wing_mm);
+     
+    // Recover X, Ymin, Ymax
+    xy_wall = airfoil_y_minmax_at(x, z, index, local_wing_sections);
+
+    // Display
+    if (xy_wall[1] != undef && xy_wall[2] != undef) {
+        translate([xy_wall[0], xy_wall[1], z])
+            color("red") sphere(r = 1.5);   // mur inférieur
+        translate([xy_wall[0], xy_wall[2], z])
+            color("green") sphere(r = 1.5); // mur supérieur
+    }
+}
+
+  
+       
+    
+    
+    
+    
+//Return the x position requested with transformation and Y min and max
+function airfoil_y_minmax_at(x, z, index, local_wing_sections) =
+    let (
+
+        //We use the profil pints  
+        airfoil_points = af_vec_path_root,
+
+        // Real chord at this section
+        chord = (wing_mode == 1)
+            ? ChordLengthAtIndex(index, local_wing_sections)
+            : ChordLengthAtEllipsePosition((wing_mm + 0.1), wing_root_chord_mm, z),
+
+        // Scale Factor of the chord
+        scale_factor = chord / 100,
+
+        // Washout progressive
+        washout_start_point = (wing_mode == 1)
+            ? (local_wing_sections * (washout_start / 100))
+            : WashoutStart(0, local_wing_sections, washout_start, wing_mm),
+
+        washout_deg_frac = (local_wing_sections - washout_start_point > 0)
+            ? (washout_deg / (local_wing_sections - washout_start_point))
+            : 0,
+
+        washout_deg_amount = (index > washout_start_point)
+            ? (index - washout_start_point) * washout_deg_frac
+            : 0,
+
+        washout_pivot = chord * (washout_pivot_perc / 100),
+
+        // Transformation on profil : scale, rotation, sweep, curve ,etc
+        pts_global = [
+            for (p = airfoil_points)
+                let(
+                    // Scaling from 0–100% to mm
+                    p_scaled = [p[0] * scale_factor, p[1] * scale_factor],
+
+                    // Shift to chord center position
+                    p_centered = [p_scaled[0] - (wing_center_line_perc / 100) * chord, p_scaled[1]],
+
+                    // Washout
+                    p_rot = (washout_deg_amount != 0)
+                                ? rotate2D(p_centered, washout_deg_amount,
+                                           washout_pivot - (wing_center_line_perc / 100) * chord)
+                                : p_centered,
+                                
+                    // Sweep and Curve
+                    x_sweep = use_custom_lead_edge_sweep ? interpolate_x(z) : 0,
+                    y_curve = use_custom_lead_edge_curve ? interpolate_y(z) : 0,
+                    p_swept = [p_rot[0] + x_sweep, p_rot[1] + y_curve * curve_amplitude],
+
+                    // Global offset 
+                    p_global = [p_swept[0] + wing_root_chord_mm * (wing_center_line_perc / 100), p_swept[1]]
+
+                ) p_global
+        ],
+
+        
+        
+        //We update the x demanded chord to our transformation
+        x1 = x - (wing_center_line_perc / 100) * chord,
+        rotated = (washout_deg_amount != 0)
+                                ? rotate2D([x1,0], washout_deg_amount,
+                                           washout_pivot - (wing_center_line_perc / 100) * chord)
+                                : [x1,0],
+        x_sweep = use_custom_lead_edge_sweep ? interpolate_x(z) : 0,
+        x2 = rotated[0] + x_sweep,
+        x_updated = x2 + wing_root_chord_mm * (wing_center_line_perc / 100),
+
+        
+        
+        // Tolerance to find points at x position
+        eps = chord * 0.002,
+        // Y Points around x
+        y_candidates = [ for (p = pts_global) if (abs(p[0] - x_updated) < eps) p[1] ],
+
+        // Y values
+        y_min = (len(y_candidates) > 0) ? min(y_candidates) : undef,
+        y_max = (len(y_candidates) > 0) ? max(y_candidates) : undef
+    )
+    [x_updated, y_min, y_max];
+
+    

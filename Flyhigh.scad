@@ -4,6 +4,7 @@
 // https://www.thingiverse.com/thing:3506692
 // https://github.com/guillaumef/openscad-airfoil
 
+
 //Tips
 // 1- If you want to add something into the wing, add a void offset around the part you want to add to avoid conflict with intern ribs during vase print  
 // 2- When spar hole is far from a edge and the vase circuit connection is too long, the system doesnt like and don't draw the spar hole. Use spar_flip_side parameter to orientate the vase circuit connection to the closest edge
@@ -30,13 +31,22 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 
 
 
+
+
 // TODO 
-// Note on openscad nightly and manifold option
-// Mid_Tip_part ? We keep ?
-// Ailerons print slower + Pb servo 
+// Comment hole pin command OK
+// Ailerons to wing attach on extrados --> nouvelle méthode 
+// Motor arm widther follow wing
+// Motor arm lock on wings
+// Wing to tip transition smooth
+
+
+
+
 // Correction servo
 // Correction passage cable
 // Correction serrage spar main center more tight
+// test Mid to ailerons in different mode to see robust
 
 // Choix :
 // Test print Encoche servo correction
@@ -47,6 +57,7 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 // Longerons axe x Main stage
 // Ailerons module clean
 // Try on Orca and add printer conf in git
+// Note on openscad nightly and manifold option
 // Readme and clean and comment function with parameters description
 // Structure Grid Mode 1 Adapat ? 
 // Optimize wing grid and hole vs mass
@@ -58,17 +69,17 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 //****************Global Variables*****************//
 
 // Printing Mode : Choose which part of wings you want
-Full_system = true;
+Full_system = false;
 
-Left_side = false;
-Right_side = true;
+Left_side = true;
+Right_side = false;
 
 // Choose one at a time
-Aileron_part = true;
+Aileron_part = false;
 Root_part = false;
 Mid_part = false;
 Tip_part = false;
-Mid_Tip_part = false; //TODO
+Mid_Aileron_part = true;
 Motor_arm_full = false;
 Motor_arm_front = false;
 Motor_arm_back = false;
@@ -76,7 +87,7 @@ Center_part = false;
 Center_part_locker = false; 
 
 //****************Wing Airfoil settings**********//
-wing_sections = Full_system?10:20; // more is higher resolution but higher processing. We decrease wing_sections for Full_system because it's too much elements just for display
+wing_sections = Full_system?8:20; // more is higher resolution but higher processing. We decrease wing_sections for Full_system because it's too much elements just for display
 wing_mm = 500;            // wing length in mm (= Half the wingspan)
 wing_root_chord_mm = 180; // Root chord length in mm
 wing_tip_chord_mm = 110; // wing tip chord length in mm (Not relevant for elliptic wing);
@@ -139,7 +150,7 @@ lead_edge_sweep = [
 //******//
 
 //**************** Wing Y curve settings **********//
-use_custom_lead_edge_curve = true; 
+use_custom_lead_edge_curve = false; 
 curve_amplitude = 0.10;
 max_amplitude = 400;
 // ([z , y]
@@ -245,15 +256,15 @@ sweep_angle_3rd_spar = 2.04*sweep_angle/3;
 
 
 //**************** Servo settings **********//  
-servo_dimension_perso = [23,8,27.5]; //[24,9,27.5]; 
+servo_dimension_perso = [23,8,30.9];//[23,8,27.3]; 
 all_pts_servo = get_trailing_edge_points();
-pt_start_servo = find_interpolated_point(wing_root_mm - 0, all_pts_servo);
+pt_start_servo = find_interpolated_point(wing_root_mm, all_pts_servo);
 
 create_servo_void = true; // It is important to check that your servo placement doesnt create any artifacts(You can
 // comment out the CreateWing() function to assist)
 servo_type = 4;           // 1=3.7g 2=5g 3=9g 4=perso
-servo_dist_root_mm = wing_root_mm-6.65; // servo placement from root
-servo_dist_le_mm = pt_start_servo[0]-40;    // servo placement from the leading edge
+servo_dist_root_mm = wing_root_mm+ 0.0;//-6.65; // servo placement from root
+servo_dist_le_mm = pt_start_servo[0]-37.5;    // servo placement from the leading edge
 servo_rotate_z_deg = -0;  // degrees to rotate on z axis
 servo_dist_depth_mm = -0; // offset the servo into or out of the wing till you dont see red
 servo_show = false;       // for debugging only. Show the servo for easier placement
@@ -297,6 +308,7 @@ $fs = 1; // Min facet size
 slice_ext_width = 0.6;//Used for some of the interfacing and gap width values
 slice_gap_width = 0.01;//This is the gap in the outer skin.(smaller is better but is limited by what your slicer can recognise)
 debug_leading_trailing_edge = false;
+debug_full_wing_points = true;
 opacity = 1;
 //******//
 
@@ -327,6 +339,31 @@ include <lib/Center-part.scad>
 
     
 //-----------------------------------------------------------
+// FULL SYSTEM BUILD
+//-----------------------------------------------------------
+module wing_full_system() {
+    union() {
+        intersection() {
+            difference() {
+                difference() {
+                    wing_shell();
+                    if (add_inner_grid) wing_inner_grid();
+                }
+                    wing_modif();
+                    CreateAileronVoid(); //We remove the ailerons the ailerons
+            }
+            //We remove the tip for Winglet
+            if (winglet_mode) cube_cut(0,wing_root_mm + motor_arm_width + wing_mid_mm);
+        }
+        if (winglet_mode) winglet_with_void();
+
+        // Create aileron
+        main_create_ailerons();
+
+    }
+}
+
+//-----------------------------------------------------------
 // MAIN WING MODULE
 //-----------------------------------------------------------
 module wing_main() {
@@ -344,10 +381,16 @@ module wing_main() {
         }
         if (winglet_mode && Tip_part)
             winglet_with_void();
+            
+        if(Mid_Aileron_part) {
+            main_create_ailerons();
+            mid_to_ailerons_connexion();
+        }
+        
     }
-    else {
-        wing_full_system();
-    }
+    else  wing_full_system();
+    
+   
 }
 
 
@@ -412,6 +455,24 @@ module wing_modif() {
     }
 }
 
+
+//-----------------------------------------------------------
+// WING SHELL (outer skin)
+//-----------------------------------------------------------
+module main_create_ailerons() {
+
+    // Create aileron block in full mode
+    intersection() {
+        difference() {
+            wing_shell();
+            if (add_inner_grid) wing_inner_grid();
+            servo_block();
+        }
+        if (create_aileron)
+            CreateAileron();
+        cube_cut(wing_root_mm + motor_arm_width, wing_mid_mm); //We remove the part in superposition with the motor arm    
+    }
+}
 
 //-----------------------------------------------------------
 // SUBMODULES: Spars, Servos, Winglets
@@ -483,11 +544,9 @@ module winglet_with_void() {
 module wing_cut_sections() {
     if (Aileron_part) cube_cut(wing_root_mm + motor_arm_width, wing_mid_mm);
     if (Root_part) cube_cut(0, wing_root_mm);
-    if (Mid_part) cube_cut(wing_root_mm + motor_arm_width, wing_mid_mm);
+    if (Mid_part || Mid_Aileron_part) cube_cut(wing_root_mm + motor_arm_width, wing_mid_mm);
     if (Tip_part && !winglet_mode)
         cube_cut(wing_root_mm + motor_arm_width + wing_mid_mm, wing_tip_mm);
-    if (Mid_Tip_part)
-        cube_cut(wing_root_mm + motor_arm_width, wing_mid_mm + wing_tip_mm);
 }
 
 module cube_cut(start_z, len_z) {
@@ -495,39 +554,13 @@ module cube_cut(start_z, len_z) {
         cube([2000, 2000, len_z]);
 }
 
-
 //-----------------------------------------------------------
-// FULL SYSTEM BUILD
+// MID TO AILERONS CONNEXIONS (for Mid Ailerons part)
 //-----------------------------------------------------------
-module wing_full_system() {
-    union() {
-        intersection() {
-            difference() {
-                difference() {
-                    wing_shell();
-                    if (add_inner_grid) wing_inner_grid();
-                }
-                    wing_modif();
-                    CreateAileronVoid(); //We remove the ailerons the ailerons
-            }
-            //We remove the tip for Winglet
-            if (winglet_mode) cube_cut(0,wing_root_mm + motor_arm_width + wing_mid_mm);
-        }
-        if (winglet_mode) winglet_with_void();
+module mid_to_ailerons_connexion() {
 
-        // Create aileron block in full mode
-        intersection() {
-            difference() {
-                wing_shell();
-                if (add_inner_grid) wing_inner_grid();
-                servo_block();
-            }
-        if (create_aileron)
-            CreateAileron();
-       }
-
-    }
 }
+
 
 
 
@@ -611,7 +644,7 @@ else
     echo(str("[SPAR] Spar 3 at ",spar_hole_perc_3,"% from LE is ", spar_hole_length_3 + spar_inser_lgth_into_center_part, "mm length."));        
    
     //**************** Wing **********//
-    if(Full_system || Root_part || Mid_part || Tip_part || Aileron_part || Mid_Tip_part){
+    if(Full_system || Root_part || Mid_part || Tip_part || Aileron_part || Mid_Aileron_part){
         
         if(Left_side || Full_system) wing_main();
 
@@ -641,6 +674,8 @@ else
         show_leading_edge_points(points_le); 
     }
     
+    if(debug_full_wing_points) show_all_airfoil_wall_points_full(wing_sections, 10);
+    
     if(debug_spar_hole)
     {        
         wing_spar_holes();//Spar hole in Wings       
@@ -658,7 +693,4 @@ else
     
     
 } //End if main
-
-
-
 

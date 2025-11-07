@@ -39,7 +39,7 @@ for side in "${SIDES[@]}"; do
       Left_side=$([ "$side" == "Left" ] && echo true || echo false);
       Right_side=$([ "$side" == "Right" ] && echo true || echo false);
       Aileron_part=false; Root_part=false; Mid_part=false; Tip_part=false;
-      Mid_Tip_part=false; Motor_arm_full=false; Motor_arm_front=false;
+      Motor_arm_full=false; Motor_arm_front=false;
       Motor_arm_back=false; Center_part=false; Center_part_locker=false;
       ${part}=true;
     " "$SRC"
@@ -55,7 +55,7 @@ for part in "${CENTER_PARTS[@]}"; do
     Left_side=false;
     Right_side=false;
     Aileron_part=false; Root_part=false; Mid_part=false; Tip_part=false;
-    Mid_Tip_part=false; Motor_arm_full=false; Motor_arm_front=false;
+    Motor_arm_full=false; Motor_arm_front=false;
     Motor_arm_back=false; Center_part=false; Center_part_locker=false;
     ${part}=true;
   " "$SRC"
