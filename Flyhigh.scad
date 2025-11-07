@@ -36,7 +36,7 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 // TODO 
 // Comment hole pin command OK
 // Ailerons to wing attach on extrados --> nouvelle méthode  : OK
-// Motor arm widther follow wing
+// Motor arm widther follow wing and remove wings
 // Motor arm lock on wings
 // Wing to tip transition smooth
 
@@ -79,8 +79,8 @@ Aileron_part = false;
 Root_part = false;
 Mid_part = false;
 Tip_part = false;
-Mid_Aileron_part = true;
-Motor_arm_full = false;
+Mid_Aileron_part = false;
+Motor_arm_full = true;
 Motor_arm_front = false;
 Motor_arm_back = false;
 Center_part = false;
@@ -549,7 +549,7 @@ module winglet_with_void() {
 module wing_cut_sections() {
     if (Aileron_part) cube_cut(wing_root_mm + motor_arm_width, wing_mid_mm);
     if (Root_part) cube_cut(0, wing_root_mm);
-    if (Mid_part || Mid_Aileron_part) cube_cut(wing_root_mm + motor_arm_width, wing_mid_mm/4);
+    if (Mid_part || Mid_Aileron_part) cube_cut(wing_root_mm + motor_arm_width, wing_mid_mm);
     if (Tip_part && !winglet_mode)
         cube_cut(wing_root_mm + motor_arm_width + wing_mid_mm, wing_tip_mm);
 }
@@ -575,12 +575,45 @@ module mid_to_ailerons_connexion() {
 //-----------------------------------------------------------
 module motor_arm_main(aero_grav_center) {
 
+    smooth_offset = 15;
+    all_pts = get_trailing_edge_points();
+    all_pts2 = get_leading_edge_points();
 
+    function interpolate_pt(p1, p2, target_z) =
+        let (dz = p2[2] - p1[2], t = (target_z - p1[2]) / dz)
+        [ p1[0] + t * (p2[0] - p1[0]), p1[1] + t * (p2[1] - p1[1]), target_z ];
+
+    function find_interpolated_point(target_z, pts) =
+        let (
+            pairs = [for (i = [0 : len(pts) - 2]) [pts[i], pts[i+1]]],
+            valid = [ for (pr = pairs) if ((pr[0][2] <= target_z && target_z <= pr[1][2]) || (pr[1][2] <= target_z && target_z <= pr[0][2])) pr ]
+        )
+        (len(valid) > 0) ? interpolate_pt(valid[0][0], valid[0][1], target_z) : undef;
+
+    pt_start = find_interpolated_point(wing_root_mm, all_pts); // + motor_arm_width
+    pt_end = find_interpolated_point(wing_root_mm , all_pts2);
+    
+    
+    
     if(Motor_arm_full || Motor_arm_front || Motor_arm_back || Full_system){
         difference() {
-        
-            motor_arm(ellipse_maj_ax, ellipse_min_ax, motor_arm_length_front, motor_arm_length_back, motor_arm_height, motor_arm_tilt_angle, motor_arm_screw_fit_offset, aero_grav_center, motor_arm_grav_center_offset, motor_arm_y_offset, back =Motor_arm_back, front = Motor_arm_front, full = Motor_arm_full);
+        union(){
+                    motor_arm(ellipse_maj_ax, ellipse_min_ax, motor_arm_length_front, motor_arm_length_back, motor_arm_height, motor_arm_tilt_angle, motor_arm_screw_fit_offset, aero_grav_center, motor_arm_grav_center_offset, motor_arm_y_offset, back =Motor_arm_back, front = Motor_arm_front, full = Motor_arm_full);
+            hull(){
             
+            
+            intersection(){
+            motor_arm(ellipse_maj_ax, ellipse_min_ax, motor_arm_length_front, motor_arm_length_back, motor_arm_height, motor_arm_tilt_angle, motor_arm_screw_fit_offset, aero_grav_center, motor_arm_grav_center_offset, motor_arm_y_offset, back =Motor_arm_back, front = Motor_arm_front, full = Motor_arm_full);
+            translate([pt_end[0],-2500,0])
+            cube([pt_start[0]-pt_end[0],5000,5000]);
+            }
+            intersection(){
+                wing_shell();
+                cube_cut(wing_root_mm + motor_arm_width+smooth_offset,1);
+            } //End of intersection
+            
+            }//End of hull
+            }//End of union
             //We remove the spar from the motor arms
             wing_spar_holes();
             //We remove the servo from the motor arms
