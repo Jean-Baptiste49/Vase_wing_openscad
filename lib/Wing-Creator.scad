@@ -429,7 +429,7 @@ function airfoil_y_minmax_at(x, z, index, local_wing_sections) =
         
         
         // Tolerance to find points at x position
-        eps = chord * 0.002,
+        eps = chord * 0.005, //0.002,
         // Y Points around x
         y_candidates = [ for (p = pts_global) if (abs(p[0] - x_updated) < eps) p[1] ],
 

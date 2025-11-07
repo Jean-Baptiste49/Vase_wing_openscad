@@ -256,7 +256,7 @@ module CreateAileron() {
             hull() {
                 translate([pt1[0] - create_aileron_thickness-x_offset_aileron_cylinder_to_cube, pt1[1] - aileron_height / 2, pt1[2]])
                     cube([x_offset_aileron_cylinder_to_cube + create_aileron_thickness, aileron_height, 0.1], center = false);
-                translate([pt2[0] - create_aileron_thickness-x_offset_aileron_cylinder_to_cube, pt2[1] - aileron_height / 2, pt2[2]-1]) // We withdraw 1 to stay in right dimension as the cube of z =1  is the extern limit 
+                translate([pt2[0] - create_aileron_thickness-x_offset_aileron_cylinder_to_cube, pt2[1] - aileron_height / 2, pt2[2]]) //pt2[2]-1]) // We withdraw 1 to stay in right dimension as the cube of z =1  is the extern limit 
                     cube([x_offset_aileron_cylinder_to_cube + create_aileron_thickness, aileron_height, 1], center = false); 
             }
         }
@@ -350,6 +350,54 @@ module CreateAileron() {
 }
 
 
+
+
+module connection_mid_to_ailerons(connexion_void = false){
+
+    cube_x = 7;
+    cube_y = 5;
+    cube_z = 0.00000001;
+    top_y_offset = 2;
+    bot_y_offset = 3;
+
+    create_aileron_thickness = aileron_thickness - aileron_reduction;
+    
+    // *** Bottom cube *** //
+    z_pos_bot = wing_root_mm + motor_arm_width;
+    // Real chord at this section
+    chord_bot = (wing_mode == 1)
+            ? ChordLengthAtIndex(z_pos_bot, local_wing_sections)
+            : ChordLengthAtEllipsePosition((wing_mm + 0.1), wing_root_chord_mm, z_pos_bot);
+    index_bot = wing_sections * z_pos_bot / wing_mm; 
+    bot_offset = chord_bot- create_aileron_thickness-x_offset_aileron_cylinder_to_cube-aileron_cyl_radius -cube_x/2;
+    xy_wall_bot = airfoil_y_minmax_at(bot_offset, z_pos_bot, index_bot, wing_sections);             
+
+    // *** Top cube *** //
+    z_pos_top = wing_root_mm + motor_arm_width + wing_mid_mm;
+    // Real chord at this section
+    chord_top = (wing_mode == 1)
+            ? ChordLengthAtIndex(z_pos_top, local_wing_sections)
+            : ChordLengthAtEllipsePosition((wing_mm + 0.1), wing_root_chord_mm, z_pos_top);         
+    index_top = wing_sections * z_pos_top / wing_mm;  
+    top_offset = chord_top- create_aileron_thickness-x_offset_aileron_cylinder_to_cube-aileron_cyl_radius -cube_x/2+3; //+3 => little offset from nowhere..
+    xy_wall_top = airfoil_y_minmax_at(top_offset, z_pos_top, index_top, wing_sections);          
+    
+    intersection(){
+
+        wing_shell();
+    
+        hull() {
+        
+        translate([xy_wall_bot[0], xy_wall_bot[2]-cube_y/bot_y_offset, z_pos_bot])
+            cube([cube_x, cube_y, cube_z]);
+
+        translate([xy_wall_top[0], xy_wall_top[2]-cube_y/top_y_offset, z_pos_top])
+            cube([cube_x, cube_y, cube_z]);    
+        }
+    }
+}
+
+/*
 module connection_mid_to_ailerons(connexion_void = false){
 
 
@@ -404,7 +452,7 @@ module connection_mid_to_ailerons(connexion_void = false){
 
 }
 
-
+*/
 
 module half_cylinder_between_points(A, B, radius, distance_cyl_cube, extension = 20) {
     V = [B[0] - A[0], B[1] - A[1], B[2] - A[2]];

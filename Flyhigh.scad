@@ -35,7 +35,7 @@ module TipAirfoilPolygon()  {  airfoil_MH45();  }
 
 // TODO 
 // Comment hole pin command OK
-// Ailerons to wing attach on extrados --> nouvelle méthode 
+// Ailerons to wing attach on extrados --> nouvelle méthode  : OK
 // Motor arm widther follow wing
 // Motor arm lock on wings
 // Wing to tip transition smooth
@@ -260,7 +260,7 @@ servo_dimension_perso = [23,8,30.9];//[23,8,27.3];
 all_pts_servo = get_trailing_edge_points();
 pt_start_servo = find_interpolated_point(wing_root_mm, all_pts_servo);
 
-create_servo_void = true; // It is important to check that your servo placement doesnt create any artifacts(You can
+create_servo = false; // It is important to check that your servo placement doesnt create any artifacts(You can
 // comment out the CreateWing() function to assist)
 servo_type = 4;           // 1=3.7g 2=5g 3=9g 4=perso
 servo_dist_root_mm = wing_root_mm+ 0.0;//-6.65; // servo placement from root
@@ -308,7 +308,7 @@ $fs = 1; // Min facet size
 slice_ext_width = 0.6;//Used for some of the interfacing and gap width values
 slice_gap_width = 0.01;//This is the gap in the outer skin.(smaller is better but is limited by what your slicer can recognise)
 debug_leading_trailing_edge = false;
-debug_full_wing_points = true;
+debug_full_wing_points = false;
 opacity = 1;
 //******//
 
@@ -383,9 +383,14 @@ module wing_main() {
             winglet_with_void();
             
         if(Mid_Aileron_part) {
-            main_create_ailerons();
-            mid_to_ailerons_connexion();
-        }
+            intersection() {
+                union(){
+                    main_create_ailerons();
+                    mid_to_ailerons_connexion();
+                }
+                wing_cut_sections(); 
+            }//End intersection Mid_Aileron_part       
+        }//End if Mid_Aileron_part
         
     }
     else  wing_full_system();
@@ -431,7 +436,7 @@ module wing_voids() {
         if (spar_hole) wing_spar_voids();
         if (create_aileron) Ailerons_pin_void();
         if (winglet_mode) Create_winglet_void();
-        if (create_servo_void) servo_void_block();
+        if (create_servo) servo_void_block();
     }
 }
 
@@ -450,7 +455,7 @@ module wing_modif() {
         if (spar_hole)
             wing_spar_holes();
 
-        if (create_servo_void)
+        if (create_servo)
             servo_block();
     }
 }
@@ -466,7 +471,7 @@ module main_create_ailerons() {
         difference() {
             wing_shell();
             if (add_inner_grid) wing_inner_grid();
-            servo_block();
+            if (create_servo) servo_block();
         }
         if (create_aileron)
             CreateAileron();
@@ -544,7 +549,7 @@ module winglet_with_void() {
 module wing_cut_sections() {
     if (Aileron_part) cube_cut(wing_root_mm + motor_arm_width, wing_mid_mm);
     if (Root_part) cube_cut(0, wing_root_mm);
-    if (Mid_part || Mid_Aileron_part) cube_cut(wing_root_mm + motor_arm_width, wing_mid_mm);
+    if (Mid_part || Mid_Aileron_part) cube_cut(wing_root_mm + motor_arm_width, wing_mid_mm/4);
     if (Tip_part && !winglet_mode)
         cube_cut(wing_root_mm + motor_arm_width + wing_mid_mm, wing_tip_mm);
 }
@@ -579,7 +584,7 @@ module motor_arm_main(aero_grav_center) {
             //We remove the spar from the motor arms
             wing_spar_holes();
             //We remove the servo from the motor arms
-            if (create_servo_void) servo_block();
+            if (create_servo) servo_block();
             
          }//End of difference
      }//End if
@@ -693,4 +698,6 @@ else
     
     
 } //End if main
+
+
 
