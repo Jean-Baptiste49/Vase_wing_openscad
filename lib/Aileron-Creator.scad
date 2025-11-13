@@ -88,7 +88,7 @@ module CreateAileronVoid() {
             }*/
                     
 
-          
+          connection_mid_to_ailerons(true);
         
 }
 
@@ -207,7 +207,7 @@ color("green")
                     cube([ aileron_thickness, slice_gap_width, aileron_command_pin_void_length ]);
                     }//End of Union
       */
-        connection_mid_to_ailerons(true);
+        connection_mid_to_ailerons();
             
         } // End of Union
 
@@ -350,15 +350,18 @@ module CreateAileron() {
 }
 
 
-
-
 module connection_mid_to_ailerons(connexion_void = false){
 
-    cube_x = 7;
-    cube_y = 5;
+    cube_x = 10;
+    cube_y = 4;
     cube_z = 0.00000001;
-    top_y_offset = 2;
+    top_y_offset = 4;//2;
     bot_y_offset = 3;
+    circle_radius = cube_y/4;
+    circ_pos_x = cube_x/2.4;
+    circ_pos_y = cube_y/8;
+    bottom_void_offset = cube_y/2;
+
 
     create_aileron_thickness = aileron_thickness - aileron_reduction;
     
@@ -382,20 +385,60 @@ module connection_mid_to_ailerons(connexion_void = false){
     top_offset = chord_top- create_aileron_thickness-x_offset_aileron_cylinder_to_cube-aileron_cyl_radius -cube_x/2+3; //+3 => little offset from nowhere..
     xy_wall_top = airfoil_y_minmax_at(top_offset, z_pos_top, index_top, wing_sections);          
     
-    intersection(){
+    if(connexion_void == false) {
+        intersection(){
 
-        wing_shell();
-    
-        hull() {
+            wing_shell();
         
-        translate([xy_wall_bot[0], xy_wall_bot[2]-cube_y/bot_y_offset, z_pos_bot])
-            cube([cube_x, cube_y, cube_z]);
+            difference(){
+                hull() {
+                
+                translate([xy_wall_bot[0], xy_wall_bot[2]-cube_y/bot_y_offset, z_pos_bot])
+                            cube([cube_x, cube_y, cube_z]);
 
-        translate([xy_wall_top[0], xy_wall_top[2]-cube_y/top_y_offset, z_pos_top])
-            cube([cube_x, cube_y, cube_z]);    
+                translate([xy_wall_top[0], xy_wall_top[2]-cube_y/top_y_offset, z_pos_top])
+                            cube([cube_x, cube_y, cube_z]); 
+                }
+
+                hull() {
+                
+                translate([xy_wall_bot[0], xy_wall_bot[2]-cube_y/bot_y_offset, z_pos_bot])
+                    linear_extrude(height=cube_z) translate([circ_pos_x,-circ_pos_y,0]) circle(r=circle_radius);
+
+
+                translate([xy_wall_top[0], xy_wall_top[2]-cube_y/top_y_offset, z_pos_top])
+                    linear_extrude(height=cube_z) translate([circ_pos_x,-circ_pos_y,0]) circle(r=circle_radius);
+          
+                }
+            }  
         }
+    } else if (connexion_void){
+
+                hull() {
+                
+                translate([xy_wall_bot[0], xy_wall_bot[2]-cube_y/bot_y_offset, z_pos_bot])
+                    linear_extrude(height=cube_z) translate([circ_pos_x,-circ_pos_y,0]) circle(r=circle_radius);
+
+                translate([xy_wall_top[0], xy_wall_top[2]-cube_y/top_y_offset, z_pos_top])
+                    linear_extrude(height=cube_z) translate([circ_pos_x,-circ_pos_y,0]) circle(r=circle_radius);    
+
+                }
+ 
+
+                hull() {
+                
+                translate([xy_wall_bot[0]+circ_pos_x, xy_wall_bot[2]-cube_y/bot_y_offset, z_pos_bot])
+                    linear_extrude(height=cube_z) polygon(points=[[-circle_radius,0],[circle_radius,0],[circle_radius+bottom_void_offset,-xy_wall_top[2]+xy_wall_top[1]],[-circle_radius-bottom_void_offset,-xy_wall_top[2]+xy_wall_top[1]]]);
+
+                translate([xy_wall_top[0]+circ_pos_x, xy_wall_top[2]-cube_y/top_y_offset, z_pos_top])
+                    linear_extrude(height=cube_z) polygon(points=[[-circle_radius,0],[circle_radius,0],[circle_radius+bottom_void_offset,-xy_wall_top[2]+xy_wall_top[1]],[-circle_radius-bottom_void_offset,-xy_wall_top[2]+xy_wall_top[1]]]);
+
+                }
+               
+               
     }
 }
+
 
 /*
 module connection_mid_to_ailerons(connexion_void = false){

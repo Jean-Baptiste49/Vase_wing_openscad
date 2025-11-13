@@ -297,6 +297,7 @@ module motor_arm(a_ellipse, b_ellipse, arm_length_front, arm_length_back, motor_
 
     if(back){
         
+        
         intersection(){  //Intersection to clean the edge of echo lock
             
             difference(){          
@@ -330,5 +331,45 @@ module motor_arm(a_ellipse, b_ellipse, arm_length_front, arm_length_back, motor_
     }// End if               
           
 
+
+}
+
+//Module to draw the attach between motor arm and wing
+module motor_arm_to_wing_attach(aero_grav_center){
+
+    circle_radius = 4;
+    attach_height = 2;
+    attach_y = 7;
+    attach_x = 2;
+    x_pos = aero_grav_center[1] + motor_arm_grav_center_offset+15;
+    z_pos = wing_root_mm +motor_arm_width+motor_arm_to_wing_hull;
+    y_offset = -3;//-2.8;
+    
+
+        translate([x_pos,y_offset,z_pos]) 
+            rotate([90,0,0]){
+            translate([-attach_x/2,0,0]) cube([attach_x,attach_y,attach_height]);
+            translate([0,attach_y,0]) linear_extrude(height=attach_height) circle(r=circle_radius);
+            }
+
+}
+
+//Module to void the attach between motor arm and wing
+module motor_arm_to_wing_attach_void(aero_grav_center){
+
+    circle_radius = 4;
+    attach_height = 4;
+    attach_y = 7;
+    attach_x = 2;
+    x_pos = aero_grav_center[1] + motor_arm_grav_center_offset+15;
+    z_pos = wing_root_mm +motor_arm_width+motor_arm_to_wing_hull;
+    y_offset = -3;//-2.8;
+    
+
+        translate([x_pos,y_offset,z_pos]) 
+            rotate([90,0,0]){
+            translate([-attach_x/2,0,0]) cube([attach_x,attach_y,attach_height]);
+            translate([0,attach_y,0]) linear_extrude(height=attach_height) circle(r=circle_radius);
+            }
 
 }
