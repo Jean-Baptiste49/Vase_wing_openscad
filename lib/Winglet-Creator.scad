@@ -1,17 +1,48 @@
+///*** Create Winglet like a Wing ***///
 
-module Create_winglet(cube_for_vase = false)
+///*** Main ***///
+module CreateWinglet(){
+
+    points_le = get_leading_edge_points();
+    z_pos = wing_root_mm + wing_mid_mm + motor_arm_width;
+    pt_start = find_interpolated_point(z_pos, points_le);   
+    x_offset = 7;
+    
+
+    
+    difference(){
+        translate([pt_start[0]-x_offset,winglet_y_pos,z_pos])
+            rotate([-90,0,0])
+                winglet_design();
+    
+        intersection(){
+            difference(){
+                wing_shell();
+                CreateAileron(); //We remove ailerons from wing if request
+            }
+            cube_cut(wing_root_mm + motor_arm_width+motor_arm_to_wing_hull, wing_mid_mm-motor_arm_to_wing_hull);
+        }    
+   }
+   
+   Create_winglet_connection();
+}
+
+
+
+///*** Function for connection between winglet to wing ***///
+module Create_winglet_connection(cube_for_vase = false)
 {
     
     points_le = get_leading_edge_points();
     z_pos = wing_root_mm + wing_mid_mm + motor_arm_width;
-    manual_rounding = 3;
+
     cube_for_vase_y1 = attached_1_radius*10;
     cube_for_vase_z1 = attached_1_length;
     cube_for_vase_y2 = attached_2_radius*10;
     cube_for_vase_z2 = attached_2_length;    
 
-    
-    
+
+
   
     function interpolate_pt(p1, p2, target_z) =
         let (dz = p2[2] - p1[2], t = (target_z - p1[2]) / dz)
@@ -26,73 +57,10 @@ module Create_winglet(cube_for_vase = false)
 
     pt_start = find_interpolated_point(z_pos, points_le);
     
-    module winglet_shape() {
-        polygon(points=[
-            [0, 0], 
-            [base_length + winglet_rear_bottom_offset, 0], 
-            [base_length + winglet_rear_up_offset, winglet_height], 
-            [2 * base_length / 3, winglet_height]
-        ]);
-    }
-   
-   intersection(){
-    union() {
-    
-    translate([pt_start[0]-winglet_x_pos,winglet_y_pos,z_pos])
-        color("orange")   
-          linear_extrude(height = winglet_width)
-            offset(r = corner_radius)
-                offset(delta = -corner_radius)
-                    winglet_shape(); 
-                
-      
 
-    p1 = [pt_start[0]-winglet_x_pos, winglet_y_pos, z_pos];
-    p2 = [pt_start[0]-winglet_x_pos + 2 * base_length / 3, winglet_y_pos+ winglet_height, z_pos];      
+
     
-    dx = p2[0] - p1[0];
-    dy = p2[1] - p1[1];
-    dz = p2[2] - p1[2];
-    distance = sqrt(dx*dx + dy*dy + dz*dz);
-    angle = atan2(dy, dx);
-    mid = [ (p1[0] + p2[0])/2, (p1[1] + p2[1])/2, z_pos + winglet_width / 2 ];
-    
-    translate(mid)
-        rotate([0, 90, angle])
-            color("orange")
-                cylinder(h=distance+1, r=winglet_width/2, center=true);
-                
-                
-    p3 = [pt_start[0]-winglet_x_pos + 2 * base_length / 3, winglet_y_pos+ winglet_height, z_pos];  
-    p4 = [pt_start[0]-winglet_x_pos + base_length+ winglet_rear_up_offset, winglet_y_pos + winglet_height, z_pos];    
-    
-    dx2 = p4[0] - p3[0];
-    dy2 = p4[1] - p3[1];
-    dz2 = p4[2] - p3[2];
-    distance2 = sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2);
-    angle2 = atan2(dy2, dx2);
-    mid2 = [ (p3[0] + p4[0])/2, (p3[1] + p4[1])/2, z_pos + winglet_width / 2 ];
-    
-    translate(mid2)
-        rotate([0, 90, angle2])
-            color("orange")
-                cylinder(h=distance2, r=winglet_width/2, center=true);   
-    }// End of Union
-   
-    union(){
-        translate([pt_start[0]-winglet_x_pos + 2.5*manual_rounding, winglet_y_pos+2*manual_rounding , z_pos+ winglet_width])
-            rotate([180,0,0])
-                color("orange") 
-                    cylinder(h = winglet_width, r = 2.5*manual_rounding, center = false); 
-                    
-        translate([pt_start[0]-winglet_x_pos + 6*manual_rounding/2, winglet_y_pos, z_pos])          
-            cube([50*base_length,2*winglet_height,winglet_width]);  
-    }// End of Union
-    
-    }// End of intersection
-    
-    
-    translate([pt_start[0]-attached_1_x_pos,attached_1_y_pos,z_pos+1]){
+    translate([pt_start[0]-attached_1_x_pos,attached_1_y_pos,z_pos+attached_z_offset]){
         rotate([180,sweep_angle,0])
             color("green") 
             if(cube_for_vase){ // In vase mode, we create the hole in the mid part, we therefore offset the hole to avoid too tight junction 
@@ -111,7 +79,7 @@ module Create_winglet(cube_for_vase = false)
                
                 }                
             
-    translate([pt_start[0]-attached_2_x_pos,attached_2_y_pos,z_pos + 1]){
+    translate([pt_start[0]-attached_2_x_pos,attached_2_y_pos,z_pos + attached_z_offset]){
         rotate([180,sweep_angle,0])
             color("green") 
             if(cube_for_vase){   // In vase mode, we create the hole in the mid part, we therefore offset the hole to avoid too tight junction         
@@ -127,16 +95,16 @@ module Create_winglet(cube_for_vase = false)
                         color("green")   
                             cube([slice_gap_width,cube_for_vase_y2,cube_for_vase_z2]);
                  }
-                }                
+    }                
 
 }
 
-module Create_winglet_void()
+///*** Function for void connection between winglet to wing ***///
+module Create_winglet_connection_void()
 {
 
     points_le = get_leading_edge_points();
     z_pos = wing_root_mm + wing_mid_mm + motor_arm_width;
-    manual_rounding = 3;
    
     
     
@@ -154,13 +122,13 @@ module Create_winglet_void()
 
     pt_start = find_interpolated_point(z_pos, points_le);
 
-    translate([pt_start[0]-attached_1_x_pos,attached_1_y_pos,z_pos+1])
+    translate([pt_start[0]-attached_1_x_pos,attached_1_y_pos,z_pos+attached_z_offset])
         rotate([180,sweep_angle,0])
             color("green") 
                 cylinder(h = attached_1_length, r = attached_1_radius*winglet_attach_void_clearance, center = false);
 
             
-    translate([pt_start[0]-attached_2_x_pos,attached_2_y_pos,z_pos+1])
+    translate([pt_start[0]-attached_2_x_pos,attached_2_y_pos,z_pos+attached_z_offset])
         rotate([180,sweep_angle,0])
             color("green") 
                 cylinder(h = attached_2_length, r = attached_2_radius*winglet_attach_void_clearance, center = false);  
@@ -168,3 +136,159 @@ module Create_winglet_void()
                 
                 
 }
+
+
+
+
+///***                                           ***///
+///*** Function winglet creation as wing design  ***///
+///***                                           ***///
+
+module WashoutSlice_winglet(index, current_chord_mm, local_wing_sections)
+{
+
+    washout_start_point = (winglet_mode == 1) ? (local_wing_sections * (washout_start_winglet / 100))
+                                           : WashoutStart(0, local_wing_sections, washout_start_winglet, winglet_mm);
+    washout_deg_frac = washout_deg_winglet / (local_wing_sections - washout_start_point);
+    washout_deg_amount = (washout_start_point - index) * washout_deg_frac;
+    rotate_point = current_chord_mm * (washout_pivot_perc_winglet / 100);
+
+    translate([ rotate_point, 0, 0 ]) rotate(washout_deg_amount) translate([ -rotate_point, 0, 0 ])
+
+        Slice_winglet(index, local_wing_sections);
+}
+
+module Slice_winglet(index, local_wing_sections)
+{
+        wingletAirfoilPolygon();
+}
+
+module WingSlice_winglet(index, z_location, local_wing_sections)
+{
+
+    // Function to calculate the rib cord length along an elliptical path
+    function ChordLengthAtEllipsePosition_winglet(a, b, x) = b * pow(1 - pow(abs(x / a), elliptic_param_winglet), 1 / elliptic_param_winglet);
+    
+    
+    current_chord_mm = (winglet_mode == 1) ? ChordLengthAtIndex(index, local_wing_sections)
+                                        : ChordLengthAtEllipsePosition_winglet((winglet_mm + 0.1), winglet_root_chord_mm, z_location);
+    scale_factor = current_chord_mm / 100;
+
+    translate([ 0, 0, z_location ]) linear_extrude(height = 0.00000001, slices = 0)
+        translate([ -winglet_center_line_perc / 100 * current_chord_mm, 0, 0 ])
+            scale([ scale_factor, scale_factor,1 ]) 
+           if (washout_deg_winglet > 0 &&
+           ((winglet_mode > 1 && 
+           index > WashoutStart(0, local_wing_sections, washout_start_winglet, winglet_mm)) ||
+           (winglet_mode == 1 && index > (local_wing_sections * (washout_start_winglet / 100)))))
+    {
+        WashoutSlice_winglet(index, current_chord_mm, local_wing_sections);
+    }
+    else
+    {
+        Slice_winglet(index, local_wing_sections);
+    }
+}
+
+module winglet_design(low_res = false)
+{
+
+    local_wing_sections = low_res ? floor(winglet_sections / 3) : winglet_sections;
+    winglet_section_mm = winglet_mm / local_wing_sections;
+
+    color("yellow")
+    
+    if (winglet_mode == 1)
+    {
+        translate([ winglet_root_chord_mm * (winglet_center_line_perc / 100), 0, 0 ]) union()
+            {
+        for (i = [0:local_wing_sections - 1])
+        {
+            z0 = winglet_section_mm * i;
+            z1 = winglet_section_mm * (i + 1);
+
+            y0 = use_custom_lead_edge_curve_winglet ? interpolate_y_winglet(z0) * curve_amplitude_winglet : 0;
+            y1 = use_custom_lead_edge_curve_winglet ? interpolate_y_winglet(z1) * curve_amplitude_winglet : 0;
+
+            x_off0 = use_custom_lead_edge_sweep_winglet ? interpolate_x_winglet(z0) : 0;
+            x_off1 = use_custom_lead_edge_sweep_winglet ? interpolate_x_winglet(z1) : 0;
+
+            hull()
+            {
+                translate([x_off0, y0, 0])
+                    WingSlice_winglet(i, z0, local_wing_sections);
+                translate([x_off1, y1, 0])
+                    WingSlice_winglet(i + 1, z1, local_wing_sections);
+            }
+        }
+        }
+    }
+    else
+    {
+        for (i = [0:local_wing_sections - 1])
+        {
+            z_pos = f(i, local_wing_sections, winglet_mm);
+            z_npos = f(i + 1, local_wing_sections, winglet_mm);
+
+            y0 = use_custom_lead_edge_curve_winglet ? interpolate_y_winglet(z_pos) * curve_amplitude_winglet : 0;
+            y1 = use_custom_lead_edge_curve_winglet ? interpolate_y_winglet(z_npos) * curve_amplitude_winglet : 0;
+
+            x_off0 = use_custom_lead_edge_sweep_winglet ? interpolate_x_winglet(z_pos) : 0;
+            x_off1 = use_custom_lead_edge_sweep_winglet ? interpolate_x_winglet(z_npos) : 0;
+            
+            translate([ winglet_root_chord_mm * (winglet_center_line_perc / 100), 0, 0 ]) union()
+            {
+            
+            hull()
+            {
+                translate([x_off0, y0, 0])
+                    WingSlice_winglet(i, z_pos, local_wing_sections);
+                translate([x_off1, y1, 0])
+                    WingSlice_winglet(i + 1, z_npos, local_wing_sections);
+            }
+        }
+        }
+    }
+}
+
+
+//****************Tools function for interpolation**********//
+// Y interpolation function from X (simple linear)
+function interpolate_x_winglet(z) =
+    let(
+        i = search_index_z_winglet(lead_edge_sweep_winglet, z)
+    )
+    i == -1 ? 0 :
+    let(
+        z0 = lead_edge_sweep_winglet[i][0],
+        x0 = lead_edge_sweep_winglet[i][1],
+        z1 = lead_edge_sweep_winglet[i+1][0],
+        x1 = lead_edge_sweep_winglet[i+1][1]
+    )
+    x0 + (z - z0) * (x1 - x0) / (z1 - z0);
+
+function search_index_z_winglet(arr, z) = 
+    (z < arr[0][0] || z > arr[len(arr)-1][0]) ? -1 :
+    search_index_helper_z_winglet(arr, z, 0);
+
+function search_index_helper_z_winglet(arr, z, i) = 
+    (i >= len(arr) - 1) ? len(arr) - 2 :
+    (z >= arr[i][0] && z < arr[i+1][0]) ? i :
+    search_index_helper_z_winglet(arr, z, i + 1);
+    
+    
+function interpolate_y_winglet(z) = let(i = search_index_z_y_winglet(lead_edge_curve_y_winglet, z))
+    i == -1 ? 0 :
+    let(z0 = lead_edge_curve_y_winglet[i][0], y0 = lead_edge_curve_y_winglet[i][1],
+        z1 = lead_edge_curve_y_winglet[i+1][0], y1 = lead_edge_curve_y_winglet[i+1][1])
+      y0 + (z - z0) * (y1 - y0)/(z1 - z0);
+
+function search_index_z_y_winglet(arr, z) = 
+    (z < arr[0][0] || z > arr[len(arr)-1][0]) ? -1 : search_index_helper_z_y_winglet(arr, z, 0);
+
+function search_index_helper_z_y_winglet(arr, z, i) =
+    (i >= len(arr)-1) ? len(arr)-2 :
+    (z >= arr[i][0] && z < arr[i+1][0]) ? i :
+    search_index_helper_z_y_winglet(arr, z, i+1); 
+    
+    

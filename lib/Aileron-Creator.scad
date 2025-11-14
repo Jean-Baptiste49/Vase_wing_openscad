@@ -1,4 +1,5 @@
 x_offset_aileron_cylinder_to_cube = 2.0; //As the hull an discontinuite assembling of cube, there is a tiny between the cylinder connecting the wing and the rest of the aileron. You can adjust the filling of this gap with this offset
+aileron_height = 50;              // Aileron dimension on Y axis 
 
 module CreateAileronVoid() {
     all_pts = get_trailing_edge_points();
@@ -352,15 +353,15 @@ module CreateAileron() {
 
 module connection_mid_to_ailerons(connexion_void = false){
 
-    cube_x = 10;
-    cube_y = 4;
-    cube_z = 0.00000001;
-    top_y_offset = 4;//2;
-    bot_y_offset = 3;
-    circle_radius = cube_y/4;
-    circ_pos_x = cube_x/2.4;
-    circ_pos_y = cube_y/8;
-    bottom_void_offset = cube_y/2;
+    cube_x = 10; //cube connection mid to aileron x dimension
+    cube_y = 4; //cube connection mid to aileron y dimension
+    cube_z = 0.00000001; //cube connection mid to aileron z dimension -> very low because we hull 2 surfaces together on top and bot side
+    top_y_offset = 1.5; //Offset on y axis connexion top side -> use it at last setting
+    bot_y_offset = 3; //Offset on y axis connexion bottom side -> use it at last setting
+    circle_radius = cube_y/4; //circle for getting the rounding on connection
+    circ_pos_x = cube_x/2.4; //circle position x
+    circ_pos_y = cube_y/8; //circle position y
+    bot_connection_gap_offset = cube_y/2; //gap parameter on bot side of gap between mid and ailerons
 
 
     create_aileron_thickness = aileron_thickness - aileron_reduction;
@@ -428,10 +429,10 @@ module connection_mid_to_ailerons(connexion_void = false){
                 hull() {
                 
                 translate([xy_wall_bot[0]+circ_pos_x, xy_wall_bot[2]-cube_y/bot_y_offset, z_pos_bot])
-                    linear_extrude(height=cube_z) polygon(points=[[-circle_radius,0],[circle_radius,0],[circle_radius+bottom_void_offset,-xy_wall_top[2]+xy_wall_top[1]],[-circle_radius-bottom_void_offset,-xy_wall_top[2]+xy_wall_top[1]]]);
+                    linear_extrude(height=cube_z) polygon(points=[[-circle_radius,0],[circle_radius,0],[circle_radius+bot_connection_gap_offset,-xy_wall_top[2]+xy_wall_top[1]],[-circle_radius-bot_connection_gap_offset,-xy_wall_top[2]+xy_wall_top[1]]]);
 
                 translate([xy_wall_top[0]+circ_pos_x, xy_wall_top[2]-cube_y/top_y_offset, z_pos_top])
-                    linear_extrude(height=cube_z) polygon(points=[[-circle_radius,0],[circle_radius,0],[circle_radius+bottom_void_offset,-xy_wall_top[2]+xy_wall_top[1]],[-circle_radius-bottom_void_offset,-xy_wall_top[2]+xy_wall_top[1]]]);
+                    linear_extrude(height=cube_z) polygon(points=[[-circle_radius,0],[circle_radius,0],[circle_radius+bot_connection_gap_offset,-xy_wall_top[2]+xy_wall_top[1]],[-circle_radius-bot_connection_gap_offset,-xy_wall_top[2]+xy_wall_top[1]]]);
 
                 }
                

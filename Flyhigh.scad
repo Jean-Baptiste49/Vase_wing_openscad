@@ -9,6 +9,7 @@
 // 1- If you want to add something into the wing, add a void offset around the part you want to add to avoid conflict with intern ribs during vase print  
 // 2- When spar hole is far from a edge and the vase circuit connection is too long, the system doesnt like and don't draw the spar hole. Use spar_flip_side parameter to orientate the vase circuit connection to the closest edge
 // 3- if you get this error : "WARNING: Normalized tree is growing past 200000 elements. Aborting normalization." -> decrease the wing_sections value
+// 4 - Setting you might need to play with : in connection_mid_to_ailerons, there is two offsets to set the  connection as close as possible to the wall. You can play with them in case it's too close to the wall (hole) or too far
 
 
 // Note Printer 
@@ -22,6 +23,7 @@
 
 // Wing airfoils
 include <lib/openscad-airfoil/m/mh45.scad>
+include <lib/openscad-airfoil/n/naca0008.scad>
 af_vec_path_root =             airfoil_MH45_path();
 af_vec_path_mid  =             airfoil_MH45_path();
 af_vec_path_tip  =             airfoil_MH45_path();
@@ -29,40 +31,37 @@ module RootAirfoilPolygon() {  airfoil_MH45();  }
 module MidAirfoilPolygon()  {  airfoil_MH45();  }
 module TipAirfoilPolygon()  {  airfoil_MH45();  }
 
+module wingletAirfoilPolygon() {  airfoil_NACA0008();  }
+
 
 
 
 
 // TODO 
-// Comment hole pin command OK
-// Ailerons to wing attach on extrados --> nouvelle méthode  : OK
-// Motor arm widther follow wing and remove wings : OK
-// Motor arm lock on wings
-// Wing to tip transition smooth and wing shape winglet
+// Validate Ailerons junction : OK
+// Raccourcir spar 3 : OK 
+
+// transition from tip to wing
 // Clean motor arm function
-// Validate Ailerons junction
 // Correction servo
-// Raccourcir spar 3
+// Clean too much param
 
 
 // Correction passage cable
 // Correction serrage spar main center more tight
 
+// Validation print :
+// - Ailerons mid junction
 
-// Choix :
-// Test print Encoche servo correction
-// Allonger Spar numero 3 ou supp attach central
 
 //Later :
-// Ailerons pin attach both sides 
-// Longerons axe x Main stage
 // Ailerons module clean
 // Try on Orca and add printer conf in git
 // Note on openscad nightly and manifold option
 // Readme and clean and comment function with parameters description
 // Structure Grid Mode 1 Adapat ? 
 // Optimize wing grid and hole vs mass
-// Close face ?
+
 
 
 //*******************END***************************//
@@ -80,15 +79,15 @@ Aileron_part = false;
 Root_part = false;
 Mid_part = false;
 Tip_part = false;
-Mid_Aileron_part = true;
+Mid_Aileron_part = false;
 Motor_arm_full = false;
 Motor_arm_front = false;
-Motor_arm_back = false;
+Motor_arm_back = true;
 Center_part = false;
 Center_part_locker = false; 
 
 //****************Wing Airfoil settings**********//
-wing_sections = Full_system?8:20; // more is higher resolution but higher processing. We decrease wing_sections for Full_system because it's too much elements just for display
+wing_sections = Full_system?6:20; // more is higher resolution but higher processing. We decrease wing_sections for Full_system because it's too much elements just for display
 wing_mm = 500;            // wing length in mm (= Half the wingspan)
 wing_root_chord_mm = 180; // Root chord length in mm
 wing_tip_chord_mm = 110; // wing tip chord length in mm (Not relevant for elliptic wing);
@@ -189,16 +188,36 @@ rib_offset = 3;   // Offset
 
 
 
-//**************** Winglet settings **********//
-winglet_mode = true;
-winglet_height = 55;
-winglet_width = 4;
-winglet_rear_up_offset = 75;
-winglet_rear_bottom_offset = 45;
-winglet_y_pos = -3.5;
-winglet_x_pos = 7;
+//**************** WINGLET settings **********//
+create_winglet = true;
+winglet_mode = 2;
+winglet_mm = 60;
+winglet_root_chord_mm = ChordLengthAtEllipsePosition((wing_mm + 0.1), wing_root_chord_mm, wing_root_mm + wing_mid_mm + motor_arm_width);
+winglet_sections = 20;
+elliptic_param_winglet = 2.5;
+winglet_center_line_perc = 70;
+washout_deg_winglet = 1.5;         // how many degrees of washout you want 0 for none
+washout_start_winglet = 60;      // where you would like the washout to start in mm from root
+washout_pivot_perc_winglet = 25; // Where the washout pivot point is percent from LE
+winglet_to_wing_hull = 10; //Length of hull for transition from winglet to wings
+
+use_custom_lead_edge_sweep_winglet = true;
+lead_edge_sweep_winglet = [ // ([z , x]
+  [0, 0],
+  [winglet_mm,75]
+];  
+
+use_custom_lead_edge_curve_winglet = false; 
+curve_amplitude_winglet = 0.10;
+max_amplitude_winglet = 10;
+// ([z , y]
+lead_edge_curve_y_winglet = [
+  [0,     0],
+  [winglet_mm,  max_amplitude_winglet] 
+];
+
+winglet_y_pos = -4;//-3.5;
 base_length = 4*wing_root_chord_mm/10;
-corner_radius = 0; 
 winglet_attach_dilatation_offset_PLA = 1.01;// We use this offset for the dilation of material after print to keep the right dimensions
 winglet_attach_void_clearance = 1.3; // We use this offset to create void in the ribs structure
     
@@ -211,6 +230,8 @@ attached_2_x_pos = -50;
 attached_2_y_pos = 1;
 attached_2_radius = 2.2;
 attached_2_length = 30;
+
+attached_z_offset = 2.5;
 //******//
 
 
@@ -248,7 +269,7 @@ spar_flip_side_2 = true;
 //*** Spar 3
 spar_hole_perc_3 = 75;            
 spar_hole_size_3 = 5.6;              
-spar_hole_length_3= 31 + motor_arm_width + wing_root_mm;
+spar_hole_length_3= 28 + motor_arm_width + wing_root_mm;
 spar_hole_offset_3 = 1.2;          
 spar_hole_void_clearance_3 = 2;
 spar_flip_side_3 = true; 
@@ -280,11 +301,9 @@ servo_show = false;       // for debugging only. Show the servo for easier place
 //**************** Aileron settings **********//
 create_aileron = true;            // Create an Aileron
 aileron_thickness = 32;           // Aileron dimension on X axis toward Leading Edge
-aileron_height = 50;              // Aileron dimension on Y axis 
 aileron_pin_hole_diameter = 1.5;  // Diameter of the pin hole fixing the aileron to wing
 aileron_pin_hole_length = 7;      // Length of the pin hole
-aileron_start_z = wing_root_mm;   // Aileron dimension on Z axis on Trailing Edge
-aileron_end_z = wing_root_mm + wing_mid_mm + motor_arm_width;// - 3*aileron_pin_hole_length; // Aileron dimension on Z axis on Trailing Edge
+ailerons_z_end_offset = 3.5;
 aileron_cyl_radius = 6;  // Aileron void cylinder radius 
 aileron_reduction = 0; //2.5;            // Aileron size reduction to fit in the ailerons void with ease 
 cylindre_wing_dist_nosweep = 1;   // Distance offset between cylinder and cube to avoid discontinuities in cut
@@ -301,6 +320,8 @@ void_offset_command_ailerons = 1.3; // Use this offset for ribs to pin command c
 void_offset_pin_hole_ailerons = 2.5; // Use this offset for ribs to pin conflict in vase. It will make a hole in ribs around the pin void
 ailerons_pin_hole_dilatation_offset_PLA = 1.2; // We use this offset for the dilation of material after print to keep the right dimensions
 ailerons_pin_hole_dilatation_offset_PETG = 1.3; 
+aileron_start_z = wing_root_mm+ motor_arm_width+motor_arm_to_wing_hull;   // Aileron dimension on Z axis on Trailing Edge
+aileron_end_z = wing_root_mm + motor_arm_width + wing_mid_mm; // Aileron dimension on Z axis on Trailing Edge
 //******//
 
 
@@ -344,7 +365,7 @@ include <lib/Center-part.scad>
 //-----------------------------------------------------------
 // FULL SYSTEM BUILD
 //-----------------------------------------------------------
-module wing_full_system() {
+module wing_full_system(aero_grav_center) {
     union() {
         intersection() {
             difference() {
@@ -352,13 +373,13 @@ module wing_full_system() {
                     wing_shell();
                     if (add_inner_grid) wing_inner_grid();
                 }
-                    wing_modif();
+                    wing_modif(aero_grav_center);
                     CreateAileronVoid(); //We remove the ailerons the ailerons
             }
             //We remove the tip for Winglet
-            if (winglet_mode) cube_cut(0,wing_root_mm + motor_arm_width + wing_mid_mm);
+            if (create_winglet) cube_cut(0,wing_root_mm + motor_arm_width + wing_mid_mm);
         }
-        if (winglet_mode) winglet_with_void();
+        if (create_winglet) winglet_main();
 
         // Create aileron
         main_create_ailerons();
@@ -376,24 +397,24 @@ module wing_main(aero_grav_center) {
                 difference() {
                     wing_shell();
                     if (add_inner_grid) wing_inner_grid();
-                }
+                } 
                 wing_modif(aero_grav_center);
             }
             if (Aileron_part) CreateAileron(); //We remove ailerons from wing if request
             wing_cut_sections();
         }
-        if (winglet_mode && Tip_part)
-            winglet_with_void();
+        if (create_winglet && Tip_part)
+            winglet_main();
             
         if(Mid_Aileron_part) {
             intersection() {
                 main_create_ailerons();
-                wing_cut_sections(); 
+                //wing_cut_sections(); 
             }//End intersection Mid_Aileron_part       
         }//End if Mid_Aileron_part
         
     }
-    else  wing_full_system();
+    else  wing_full_system(aero_grav_center);
     
    
 }
@@ -435,7 +456,7 @@ module wing_voids() {
     union() {
         if (spar_hole) wing_spar_voids();
         if (create_aileron) Ailerons_pin_void();
-        if (winglet_mode) Create_winglet_void();
+        if (create_winglet) Create_winglet_connection_void();
         if (create_servo) servo_void_block();
     }
 }
@@ -446,8 +467,8 @@ module wing_voids() {
 //-----------------------------------------------------------
 module wing_modif(aero_grav_center) {
     union() {
-        if (winglet_mode)
-            Create_winglet(cube_for_vase = true);
+        if (create_winglet)
+            Create_winglet_connection(cube_for_vase = true);
 
         if (create_aileron && !Aileron_part && !Full_system)
             CreateAileronVoid();
@@ -475,9 +496,8 @@ module main_create_ailerons() {
             if (add_inner_grid) wing_inner_grid();
             if (create_servo) servo_block();
         }
-        if (create_aileron)
-            CreateAileron();
-        cube_cut(wing_root_mm + motor_arm_width + motor_arm_to_wing_hull, wing_mid_mm-motor_arm_to_wing_hull); //We remove the part in superposition with the motor arm    
+        if (create_aileron) CreateAileron();
+        cube_cut(wing_root_mm + motor_arm_width + motor_arm_to_wing_hull, wing_mid_mm-motor_arm_to_wing_hull-ailerons_z_end_offset); //We remove the part in superposition with the motor arm    
     }
 }
 
@@ -535,13 +555,9 @@ module servo_block() {
     }
 }
 
-//Create Winglet with the Pin Aileron connection
-module winglet_with_void() {
-    difference() {
-        Create_winglet();
-        if (create_aileron)
-            CreateAileronVoid();
-    }
+//Create Winglet
+module winglet_main() {
+    CreateWinglet();
 }
 
 
@@ -550,9 +566,9 @@ module winglet_with_void() {
 //-----------------------------------------------------------
 module wing_cut_sections() {
     if (Aileron_part) cube_cut(wing_root_mm + motor_arm_width+motor_arm_to_wing_hull, wing_mid_mm-motor_arm_to_wing_hull);
-    if (Root_part) cube_cut(0, wing_root_mm);
+    if (Root_part) cube_cut(0, wing_root_mm - motor_arm_to_wing_hull);
     if (Mid_part || Mid_Aileron_part) cube_cut(wing_root_mm + motor_arm_width+motor_arm_to_wing_hull, wing_mid_mm-motor_arm_to_wing_hull);
-    if (Tip_part && !winglet_mode)
+    if (Tip_part && !create_winglet)
         cube_cut(wing_root_mm + motor_arm_width + wing_mid_mm, wing_tip_mm);
 }
 
@@ -862,7 +878,7 @@ else
    
     //**************** Wing **********//
     if(Full_system || Root_part || Mid_part || Tip_part || Aileron_part || Mid_Aileron_part){
-        
+             
         if(Left_side || Full_system) wing_main(aero_grav_center);
 
         if(Right_side || Full_system)
@@ -873,12 +889,13 @@ else
  
     //**************** Motor arm **********//
     if(Left_side || Full_system) motor_arm_main(aero_grav_center);
+    if(Left_side && (Motor_arm_back || Motor_arm_full) || Full_system) motor_arm_to_wing_attach(aero_grav_center); 
     
     if(Right_side || Full_system)
         mirror([0, 0, 1]) 
-            translate([0, 0, center_width])
+            translate([0, 0, center_width]){
                 motor_arm_main(aero_grav_center); 
-    if(Motor_arm_back || Motor_arm_full || Full_system) motor_arm_to_wing_attach(aero_grav_center);     
+                if(Motor_arm_back || Motor_arm_full || Full_system) motor_arm_to_wing_attach(aero_grav_center);}
 
     //**************** Center part **********//
     center_part_main(aero_grav_center, center_width, center_length, center_height, Center_part_locker);
@@ -911,7 +928,5 @@ else
     
     
 } //End if main
-
-
 
 
